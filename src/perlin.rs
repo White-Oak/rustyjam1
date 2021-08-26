@@ -40,8 +40,14 @@ pub struct PerlinPipelineHandle(Handle<PipelineDescriptor>);
 
 #[derive(RenderResources, Default, TypeUuid)]
 #[uuid = "af8c8bb6-bab2-48e9-9251-6b757d28afda"]
-pub struct TimeComponent {
+struct TimeComponent {
     value: f32,
+}
+
+#[derive(RenderResources, Default, TypeUuid)]
+#[uuid = "10731270-61b9-4d43-b6de-6686fe2f88c5"]
+pub struct NoiseColorComponent {
+    pub value: Vec2,
 }
 
 #[derive(RenderResources, Default, TypeUuid)]
@@ -57,6 +63,7 @@ pub struct PerlinBundle {
     render_pipelines: RenderPipelines,
     blend_state: BlendState,
     visible: Visible,
+    color: NoiseColorComponent,
 }
 
 impl PerlinBundle {
@@ -76,6 +83,9 @@ impl PerlinBundle {
                 is_transparent: true,
                 is_visible: true,
             },
+            color: NoiseColorComponent {
+                value: Vec2::splat(0.8),
+            },
         }
     }
 }
@@ -94,8 +104,15 @@ impl FromWorld for PerlinPipelineHandle {
             "time_component",
             RenderResourcesNode::<TimeComponent>::new(true),
         );
+        render_graph.add_system_node(
+            "color_component",
+            RenderResourcesNode::<NoiseColorComponent>::new(true),
+        );
         render_graph
             .add_node_edge("time_component", MAIN_PASS)
+            .unwrap();
+        render_graph
+            .add_node_edge("color_component", MAIN_PASS)
             .unwrap();
 
         let mut shaders: Mut<Assets<Shader>> = world.get_resource_mut().expect("shaders");

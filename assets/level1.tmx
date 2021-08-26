@@ -368,14 +368,14 @@
   <object id="41" x="929" y="1184" width="287" height="81"/>
  </objectgroup>
  <objectgroup id="5" name="Cameras">
-  <object id="43" x="33" y="36" width="31" height="28">
+  <object id="43" x="264" y="37" width="31" height="28">
    <properties>
     <property name="end_angle" type="float" value="-30"/>
     <property name="radius" type="float" value="300"/>
     <property name="start_angle" type="float" value="-80"/>
    </properties>
   </object>
-  <object id="44" x="154.5" y="37" width="31" height="28">
+  <object id="44" x="1113.5" y="33" width="31" height="28">
    <properties>
     <property name="end_angle" type="float" value="-120"/>
     <property name="radius" type="float" value="300"/>

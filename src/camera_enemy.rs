@@ -1,7 +1,12 @@
-use bevy::{math::Vec2, prelude::*};
+use bevy::{
+    core::FixedTimestep,
+    math::{Mat2, Vec2, Vec3Swizzles},
+    prelude::*,
+};
 
 use crate::{
-    perlin::{PerlinBundle, PerlinPipelineHandle},
+    perlin::{NoiseColorComponent, PerlinBundle, PerlinPipelineHandle},
+    player::Player,
     GameState,
 };
 
@@ -39,14 +44,14 @@ fn spawn_camera(
     let indices = vec![0, 1, 2];
     for spawn in spawns.iter() {
         let mut mesh = Mesh::new(bevy::render::pipeline::PrimitiveTopology::TriangleList);
-        let mut v_pos = vec![[0., 0., 0.]];
+        let mut v_pos = vec![[0., 0.]];
         let angles = [spawn.start_angle, spawn.end_angle];
         let radius = spawn.radius;
+        let origin = Vec2::new(radius, 0.);
         for angle in angles {
-            // rotating (radius, 0)
-            let x = angle.cos() * radius;
-            let y = angle.sin() * radius;
-            v_pos.push([x, y, 0.]);
+            let rotation_mat = Mat2::from_angle(angle);
+            let res = rotation_mat * origin;
+            v_pos.push(res.into());
         }
         dbg!(&v_pos);
         mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, v_pos);
@@ -59,15 +64,62 @@ fn spawn_camera(
                 transform: Transform::from_xyz(spawn.x, spawn.y, 0.2),
                 ..Default::default()
             })
+            .insert(Camera {
+                start_angle: spawn.start_angle,
+                end_angle: spawn.end_angle,
+                radius: spawn.radius,
+            })
             .insert_bundle(PerlinBundle::new(&pp_handle, Vec2::splat(NOISE_RESOLUTION)));
     }
+}
+
+fn base_color() -> Vec2 {
+    Vec2::splat(0.8)
+}
+
+fn detected_color() -> Vec2 {
+    Vec2::new(0.9, 0.1)
+}
+
+fn detect_player(
+    cameras: Query<(&Camera, &Transform, &mut NoiseColorComponent)>,
+    player: Query<&Transform, With<Player>>,
+) {
+    let player_tr = player.single().expect("single player").translation.xy();
+    let origin = Vec2::new(1., 0.);
+    let base_color = base_color();
+    let detected_color = detected_color();
+    cameras.for_each_mut(|(cam, tr, mut color)| {
+        let mut is_base_color = true;
+        let tr = tr.translation.xy();
+        let player_tr = player_tr - tr;
+        let angle = origin.angle_between(player_tr);
+        if angle > cam.start_angle && angle < cam.end_angle {
+            let dist = player_tr.length_squared();
+            if dist < cam.radius * cam.radius {
+                is_base_color = false;
+            }
+        }
+        if is_base_color {
+            color.value = base_color;
+        } else {
+            color.value = detected_color;
+        }
+    })
 }
 
 pub struct EnemyCameraPlugin;
 impl Plugin for EnemyCameraPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.init_resource::<Vec<CameraSpawn>>().add_system_set(
-            SystemSet::on_enter(GameState::Level).with_system(spawn_camera.system()),
-        );
+        app.init_resource::<Vec<CameraSpawn>>()
+            .add_system_set(
+                SystemSet::on_enter(GameState::Level).with_system(spawn_camera.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::Level).with_system(detect_player.system()),
+                // SystemSet::new()
+                //     .with_run_criteria(FixedTimestep::steps_per_second(1.))
+                //     .with_system(detect_player.system()),
+            );
     }
 }

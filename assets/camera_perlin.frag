@@ -13,9 +13,12 @@ precision mediump float;
 layout(set = 2, binding = 0) uniform TimeComponent_value {
     float time;
 };
-layout(location = 0) out vec4 o_Target;
+layout(set = 2, binding = 1) uniform NoiseColorComponent_value {
+    vec2 base_color;
+};
 layout(location = 0) in float uv;
 layout(location = 1) in vec2 pos;
+layout(location = 0) out vec4 o_Target;
 
 vec4 mod289(vec4 x) {
     float value = 289.0;
@@ -63,21 +66,13 @@ float classicPerlinNoise(vec2 P){
 
 void main()
 {
-    //vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    //vec2 xy = gl_FragCoord.xy / vec2(4000);
     vec2 xy = pos / vec2(200);
-    //uv.x *= u_resolution.x / u_resolution.y;
-
 
     float noise = classicPerlinNoise(xy);
     noise = 0.2*sin(time + 6.2831 * noise);
-    //vec3 animated_noise = vec3(noise, 0.);
     float clamped = min(noise, 0.1);
-    vec4 resulting_noise = vec4(0.8, 0.8, 0., 0.6 + clamped);
+    vec4 resulting_noise = vec4(base_color, 0., 0.6 + clamped);
 
-    //vec3 base_color = vec3(0.5, 0.5, 0.0);
-    //animated_noise += base_color;
-    //vec4 resulting_noise = vec4(animated_noise, 0.9);
     vec4 result = resulting_noise * uv;
 
     o_Target = result;

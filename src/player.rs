@@ -109,7 +109,7 @@ fn spawn_player(
                 sprite: light,
                 material: light_material,
                 visible: Visible {
-                    is_visible: true,
+                    is_visible: false,
                     is_transparent: true,
                 },
                 ..Default::default()
@@ -120,7 +120,7 @@ fn spawn_player(
 fn move_keyboard(
     keys: Res<Input<KeyCode>>,
     mut query: Query<&mut Velocity, (With<Player>, Without<Dashing>)>,
-    mut casting_command: ResMut<Option<CastingCommand>>,
+    mut casting_events: EventWriter<CastingCommand>,
     cast_res: Res<Option<Casting>>,
     mut last_velocity: ResMut<LastVelocity>,
 ) {
@@ -156,23 +156,22 @@ fn move_keyboard(
         }
     }
     // if any move input - queue casting interrupt.
-    if up || down || left || right {
-        // player.casting = None;
-        *casting_command = Some(CastingCommand::Interrupt);
-    }
     if q {
-        *casting_command = Some(CastingCommand::Cast(SpellKind::Dash));
+        casting_events.send(CastingCommand::Cast(SpellKind::Dash));
     } else if e {
-        *casting_command = Some(CastingCommand::Cast(SpellKind::Smoke));
+        casting_events.send(CastingCommand::Cast(SpellKind::Smoke));
     } else if r {
-        *casting_command = Some(CastingCommand::Cast(SpellKind::Emp));
+        casting_events.send(CastingCommand::Cast(SpellKind::Emp));
+    } else if up || down || left || right {
+        // player.casting = None;
+        casting_events.send(CastingCommand::Interrupt);
     }
 }
 
 fn move_keyboard_for_dashing(
     keys: Res<Input<KeyCode>>,
     query: Query<Entity, (With<Player>, With<Dashing>)>,
-    mut casting_command: ResMut<Option<CastingCommand>>,
+    mut casting_events: EventWriter<CastingCommand>,
 ) {
     if query.single().is_err() {
         return;
@@ -186,13 +185,12 @@ fn move_keyboard_for_dashing(
     // if any move input - queue casting interrupt.
     if up || down || left || right {
         log::debug!("setting interrupt for dash");
-        // player.casting = None;
-        *casting_command = Some(CastingCommand::Interrupt);
+        casting_events.send(CastingCommand::Interrupt);
     }
     if e {
-        *casting_command = Some(CastingCommand::Cast(SpellKind::Smoke));
+        casting_events.send(CastingCommand::Cast(SpellKind::Smoke));
     } else if r {
-        *casting_command = Some(CastingCommand::Cast(SpellKind::Emp));
+        casting_events.send(CastingCommand::Cast(SpellKind::Emp));
     }
 }
 
@@ -200,8 +198,9 @@ fn dash(
     mut commands: Commands,
     query: Query<(Entity, &mut Dashing, &mut Velocity)>,
     time: Res<Time>,
-    casting_command: Res<Option<CastingCommand>>,
+    mut casting_events: EventReader<CastingCommand>,
 ) {
+    let events: Vec<_> = casting_events.iter().collect();
     query.for_each_mut(|(entity, mut dashing, mut velocity)| {
         // TODO: normalize per frame
         let delta = time.delta();
@@ -209,12 +208,13 @@ fn dash(
         if dashing.0.tick(delta).just_finished() {
             needs_interrupt = true;
         }
-        // TODO: so maybe events?
-        if let Some(CastingCommand::Cast(SpellKind::Dash)) = casting_command.as_ref() {
-            // don't interrupt dash on dash
-        } else {
-            log::debug!("found interrupt for dash");
-            needs_interrupt = true;
+        for casting_command in events.iter() {
+            if let CastingCommand::Cast(SpellKind::Dash) = casting_command {
+                // don't interrupt dash on dash
+            } else {
+                log::debug!("found interrupt for dash");
+                needs_interrupt = true;
+            }
         }
         if needs_interrupt {
             log::debug!("finished dashing");
@@ -237,7 +237,7 @@ fn start_dash(
 
 fn process_casting(
     mut commands: Commands,
-    casting_command: Res<Option<CastingCommand>>,
+    mut casting_events: EventReader<CastingCommand>,
     mut cast_res: ResMut<Option<Casting>>,
     player: Query<Entity, With<Player>>,
     time: Res<Time>,
@@ -245,7 +245,7 @@ fn process_casting(
     if let Some(casting) = cast_res.as_mut() {
         casting.timer.tick(time.delta());
     }
-    if let Some(event) = casting_command.as_ref() {
+    if let Some(event) = casting_events.iter().next() {
         if let Some(casting) = cast_res.as_mut() {
             match event {
                 CastingCommand::Cast(cast_kind) if *cast_kind == casting.kind => {
@@ -302,7 +302,7 @@ impl Plugin for PlayerPlugin {
         )
         .init_resource::<LastVelocity>()
         .init_resource::<Option<Casting>>()
-        .init_resource::<Option<CastingCommand>>()
+        .add_event::<CastingCommand>()
         .add_system_set(
             SystemSet::on_update(GameState::Level)
                 .with_system(move_keyboard.system().label("control"))

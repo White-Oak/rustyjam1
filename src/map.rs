@@ -1,7 +1,14 @@
-use bevy::{asset::LoadState, log, prelude::*, render::texture::FilterMode, sprite::collide_aabb::{collide, Collision}};
+use bevy::{
+    asset::LoadState,
+    log,
+    prelude::*,
+    render::texture::FilterMode,
+    sprite::collide_aabb::{collide, Collision},
+};
 use bevy_ecs_tilemap::prelude::*;
+use tiled::PropertyValue;
 
-use crate::{player::PLAYER_SIZE, GameState, MainCamera};
+use crate::{camera_enemy::CameraSpawn, player::PLAYER_SIZE, GameState, MainCamera};
 
 // pub struct TiledMapHandle(Handle<TiledMap>);
 
@@ -42,6 +49,7 @@ fn spawn_map(mut commands: Commands, current_level: Res<CurrentLevelHandle>) {
 fn load_boundaries(
     mut bounds: ResMut<Boundaries>,
     mut spawn: ResMut<SpawnPoint>,
+    mut camera_spawns: ResMut<Vec<CameraSpawn>>,
     map_assets: ResMut<Assets<TiledMap>>,
     asset_server: Res<AssetServer>,
     mut state: ResMut<State<GameState>>,
@@ -61,7 +69,11 @@ fn load_boundaries(
             "Obstacles" => {
                 for obj in group.objects.iter() {
                     bounds.0.push((
-                        Vec3::new(obj.x + obj.width / 2., (map_y - obj.y) - obj.height / 2., 0.6),
+                        Vec3::new(
+                            obj.x + obj.width / 2.,
+                            (map_y - obj.y) - obj.height / 2.,
+                            0.6,
+                        ),
                         Vec2::new(obj.width, obj.height),
                     ));
                 }
@@ -72,6 +84,37 @@ fn load_boundaries(
                 spawn_y = map_y - spawn_obj.y;
                 spawn.0 = Some(Vec2::new(spawn_x, spawn_y));
             }
+            "Cameras" => {
+                for spawn_obj in group.objects.iter() {
+                    let x = spawn_obj.x;
+                    let y = map_y - spawn_obj.y;
+                    let props = &spawn_obj.properties;
+                    let radius = if let Some(PropertyValue::FloatValue(x)) = props.get("radius") {
+                        *x
+                    } else {
+                        panic!("no start_angle")
+                    };
+                    let start_angle =
+                        if let Some(PropertyValue::FloatValue(x)) = props.get("start_angle") {
+                            x.to_radians()
+                        } else {
+                            panic!("no start_angle")
+                        };
+                    let end_angle =
+                        if let Some(PropertyValue::FloatValue(x)) = props.get("end_angle") {
+                            x.to_radians()
+                        } else {
+                            panic!("no start_angle")
+                        };
+                    camera_spawns.push(CameraSpawn {
+                        x,
+                        y,
+                        radius,
+                        start_angle,
+                        end_angle,
+                    });
+                }
+            }
             _ => {
                 log::error!("Unknown object layer: {}", group.name);
             }
@@ -80,8 +123,8 @@ fn load_boundaries(
     let mut camera_tr = camera.single_mut().expect("inexisting camera");
     camera_tr.translation.x = spawn_x;
     camera_tr.translation.y = spawn_y;
-    camera_tr.scale.x = 1./2.;
-    camera_tr.scale.y = 1./2.;
+    camera_tr.scale.x = 1. / 2.;
+    camera_tr.scale.y = 1. / 2.;
     state.set(GameState::Level).expect("cant set state");
 }
 
@@ -118,9 +161,7 @@ impl Plugin for MapPlugin {
                 SystemSet::on_update(GameState::LoadingLevel).with_system(load_boundaries.system()),
             )
             .add_system_set(
-                SystemSet::on_exit(GameState::LoadingLevel)
-                    .with_system(spawn_map.system())
-                    // .with_system(debug_boundaries.system()),
+                SystemSet::on_exit(GameState::LoadingLevel).with_system(spawn_map.system()), // .with_system(debug_boundaries.system()),
             );
     }
 }

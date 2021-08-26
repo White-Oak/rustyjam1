@@ -86,21 +86,20 @@ fn spawn_player(
     });
 
     let particle = asset_server.load("13.png");
-    // let light_size = Vec2::new(4000., 4000.);
     let light_size = Vec2::splat(LIGHT_RADIUS);
     let light = Sprite::new(light_size / 2.);
     let light_material = assets.add(ColorMaterial {
         color: Color::rgba(1., 1., 1., 1.),
         texture: Some(particle),
     });
-    // let spawn = spawn.0.expect("loaded");
-    // let spawn = (spawn, 0.5).into();
+    let spawn = spawn.0.expect("loaded");
+    let spawn = (spawn, 0.5).into();
 
     commands
         .spawn_bundle(SpriteBundle {
             sprite,
             material,
-            // transform: Transform::from_translation(spawn),
+            transform: Transform::from_translation(spawn),
             ..Default::default()
         })
         .insert(Player)
@@ -110,7 +109,7 @@ fn spawn_player(
                 sprite: light,
                 material: light_material,
                 visible: Visible {
-                    is_visible: false,
+                    is_visible: true,
                     is_transparent: true,
                 },
                 ..Default::default()

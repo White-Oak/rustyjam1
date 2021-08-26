@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-up" width="320" height="320" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="42">
+<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-up" width="320" height="320" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="46">
  <tileset firstgid="1" name="Yellow Brick Floor" tilewidth="32" tileheight="32" tilecount="24" columns="4">
   <image source="Yellow Dungeon Tileset v1.1.1/Yellow Brick Floor.png" width="128" height="192"/>
  </tileset>
@@ -12,7 +12,7 @@
  <tileset firstgid="51" name="Yellow Dungeon Tileset" tilewidth="32" tileheight="32" tilecount="44" columns="11">
   <image source="Yellow Dungeon Tileset v1.1.1/Yellow Dungeon Tileset.png" width="352" height="128"/>
  </tileset>
- <layer id="1" name="Tile Layer 1" width="320" height="320">
+ <layer id="1" name="Tile Layer 1" width="320" height="320" locked="1">
   <data encoding="csv">
 51,45,45,46,45,45,64,62,48,48,44,45,45,50,48,50,45,49,45,46,48,50,45,46,44,50,48,47,49,50,46,53,51,45,48,49,45,47,49,44,46,47,48,50,43,47,50,53,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 51,5,5,21,15,2,64,62,20,12,18,18,12,23,3,1,13,5,12,15,15,22,16,22,11,4,10,21,3,15,9,53,62,24,7,1,17,3,13,24,31,28,28,33,4,11,2,64,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -336,10 +336,10 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="3" name="Spawn" locked="1">
-  <object id="12" x="86.6667" y="69.3333" width="44" height="32"/>
+ <objectgroup id="3" name="Spawn">
+  <object id="12" x="80.6667" y="73.333" width="44" height="32"/>
  </objectgroup>
- <objectgroup id="2" name="Obstacles" locked="1">
+ <objectgroup id="2" name="Obstacles">
   <object id="8" x="446.667" y="222.667" width="33.3333" height="17.3333"/>
   <object id="13" x="1" y="-2" width="26" height="1444"/>
   <object id="15" x="-28" y="1424" width="1561" height="70"/>
@@ -366,5 +366,28 @@
   <object id="39" x="928" y="769" width="288" height="80"/>
   <object id="40" x="321" y="1182" width="287" height="81"/>
   <object id="41" x="929" y="1184" width="287" height="81"/>
+ </objectgroup>
+ <objectgroup id="5" name="Cameras">
+  <object id="43" x="33" y="36" width="31" height="28">
+   <properties>
+    <property name="end_angle" type="float" value="-30"/>
+    <property name="radius" type="float" value="300"/>
+    <property name="start_angle" type="float" value="-80"/>
+   </properties>
+  </object>
+  <object id="44" x="154.5" y="37" width="31" height="28">
+   <properties>
+    <property name="end_angle" type="float" value="-120"/>
+    <property name="radius" type="float" value="300"/>
+    <property name="start_angle" type="float" value="-160"/>
+   </properties>
+  </object>
+  <object id="45" x="43.5" y="447" width="31" height="28">
+   <properties>
+    <property name="end_angle" type="float" value="45"/>
+    <property name="radius" type="float" value="600"/>
+    <property name="start_angle" type="float" value="30"/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

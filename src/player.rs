@@ -1,6 +1,6 @@
 use bevy::{log, prelude::*};
 
-use crate::{map::SpawnPoint, movement::Velocity, GameState};
+use crate::{map::SpawnPoint, movement::Velocity, smoke_bomb::SmokeBomb, GameState};
 
 pub const PLAYER_SIZE: f32 = 32.;
 const PLAYER_SPEED: f32 = 2.;
@@ -68,7 +68,7 @@ impl Default for LastVelocity {
         Self(Vec2::new(0., -PLAYER_SPEED))
     }
 }
-struct Dashing(Timer);
+pub struct Dashing(Timer);
 
 pub struct Player;
 
@@ -239,7 +239,7 @@ fn process_casting(
     mut commands: Commands,
     mut casting_events: EventReader<CastingCommand>,
     mut cast_res: ResMut<Option<Casting>>,
-    player: Query<Entity, With<Player>>,
+    player: Query<(Entity, &Transform), With<Player>>,
     time: Res<Time>,
 ) {
     if let Some(casting) = cast_res.as_mut() {
@@ -278,14 +278,20 @@ fn process_casting(
     if let Some(casting) = cast_res.as_mut() {
         if casting.timer.just_finished() {
             log::debug!("finished casting");
-            let player = player.single().expect("single player");
+            let (player, tr) = player.single().expect("single player");
             match casting.kind {
                 SpellKind::Dash => {
                     let timer = Timer::from_seconds(casting.kind.duration(), false);
                     commands.entity(player).insert(Dashing(timer));
                     log::debug!("starting dashing");
                 }
-                SpellKind::Smoke => {}
+                SpellKind::Smoke => {
+                    commands
+                        .spawn()
+                        .insert(*tr)
+                        .insert(SmokeBomb);
+                    log::debug!("casted smoke bomb");
+                }
                 SpellKind::Emp => {}
             }
             let _ = cast_res.take();

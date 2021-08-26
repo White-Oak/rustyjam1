@@ -14,7 +14,7 @@ layout(set = 2, binding = 0) uniform TimeComponent_value {
     float time;
 };
 layout(set = 2, binding = 1) uniform NoiseColorComponent_value {
-    vec2 base_color;
+    vec3 base_color;
 };
 layout(location = 0) in float uv;
 layout(location = 1) in vec2 pos;
@@ -71,7 +71,7 @@ void main()
     float noise = classicPerlinNoise(xy);
     noise = 0.2*sin(time + 6.2831 * noise);
     float clamped = min(noise, 0.1);
-    vec4 resulting_noise = vec4(base_color, 0., 0.6 + clamped);
+    vec4 resulting_noise = vec4(base_color, 0.6 + clamped);
 
     vec4 result = resulting_noise * uv;
 

@@ -1,14 +1,9 @@
 use bevy::{
-    core::FixedTimestep,
     math::{Mat2, Vec2, Vec3Swizzles},
     prelude::*,
 };
 
-use crate::{
-    perlin::{NoiseColorComponent, PerlinBundle, PerlinPipelineHandle},
-    player::Player,
-    GameState,
-};
+use crate::{GameState, perlin::{NoiseColorComponent, PerlinBundle, PerlinPipelineHandle}, player::{Dashing, Player}};
 
 /// (position, start_a, radius)
 #[derive(Debug, Clone, Copy)]
@@ -40,9 +35,9 @@ fn spawn_camera(
     dbg!(&spawns as &Vec<_>);
     // x is used for transparency going further from start
     // let uv = vec![[1.0, 0.0], [0., 0.], [0., 0.]];
+    for spawn in spawns.iter() {
     let uv = vec![1., 0.5, 0.5];
     let indices = vec![0, 1, 2];
-    for spawn in spawns.iter() {
         let mut mesh = Mesh::new(bevy::render::pipeline::PrimitiveTopology::TriangleList);
         let mut v_pos = vec![[0., 0.]];
         let angles = [spawn.start_angle, spawn.end_angle];
@@ -69,23 +64,27 @@ fn spawn_camera(
                 end_angle: spawn.end_angle,
                 radius: spawn.radius,
             })
-            .insert_bundle(PerlinBundle::new(&pp_handle, Vec2::splat(NOISE_RESOLUTION)));
+            .insert_bundle(PerlinBundle::new(&pp_handle, Vec2::splat(NOISE_RESOLUTION), base_color()));
     }
 }
 
-fn base_color() -> Vec2 {
-    Vec2::splat(0.8)
+fn base_color() -> Vec3 {
+    Vec3::new(0.8, 0.8, 0.)
 }
 
-fn detected_color() -> Vec2 {
-    Vec2::new(0.9, 0.1)
+fn detected_color() -> Vec3 {
+    Vec3::new(0.9, 0.1, 0.)
 }
 
 fn detect_player(
     cameras: Query<(&Camera, &Transform, &mut NoiseColorComponent)>,
-    player: Query<&Transform, With<Player>>,
+    player: Query<&Transform, (With<Player>, Without<Dashing>)>,
 ) {
-    let player_tr = player.single().expect("single player").translation.xy();
+    let player_tr = if let Ok(x) = player.single(){
+        x.translation.xy()
+    } else {
+        return
+    };
     let origin = Vec2::new(1., 0.);
     let base_color = base_color();
     let detected_color = detected_color();

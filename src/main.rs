@@ -4,12 +4,14 @@ mod movement;
 mod perlin;
 mod player;
 mod ui;
+mod smoke_bomb;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*, };
 use bevy_ecs_tilemap::prelude::*;
 use camera_enemy::EnemyCameraPlugin;
 use map::MapPlugin;
 use perlin::PerlinPlugin;
+use smoke_bomb::SmokeBombPlugin;
 use ui::UiPlugin;
 
 use crate::{movement::MovementPlugin, player::PlayerPlugin};
@@ -41,6 +43,7 @@ fn main() {
         .add_plugin(EnemyCameraPlugin)
         .add_plugin(FrameTimeDiagnosticsPlugin)
         .add_plugin(UiPlugin)
+        .add_plugin(SmokeBombPlugin)
         .add_startup_system(setup.system())
         .run();
 }

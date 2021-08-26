@@ -47,7 +47,7 @@ struct TimeComponent {
 #[derive(RenderResources, Default, TypeUuid)]
 #[uuid = "10731270-61b9-4d43-b6de-6686fe2f88c5"]
 pub struct NoiseColorComponent {
-    pub value: Vec2,
+    pub value: Vec3,
 }
 
 #[derive(RenderResources, Default, TypeUuid)]
@@ -67,7 +67,7 @@ pub struct PerlinBundle {
 }
 
 impl PerlinBundle {
-    pub fn new(handle: &PerlinPipelineHandle, resolution: Vec2) -> Self {
+    pub fn new(handle: &PerlinPipelineHandle, resolution: Vec2, color: Vec3) -> Self {
         PerlinBundle {
             time: TimeComponent::default(),
             noise: { PerlinComponent { resolution } },
@@ -84,7 +84,7 @@ impl PerlinBundle {
                 is_visible: true,
             },
             color: NoiseColorComponent {
-                value: Vec2::splat(0.8),
+                value: color
             },
         }
     }

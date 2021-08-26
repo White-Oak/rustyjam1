@@ -186,6 +186,7 @@ fn move_keyboard_for_dashing(
     let r = keys.just_pressed(KeyCode::R);
     // if any move input - queue casting interrupt.
     if up || down || left || right {
+        log::debug!("setting interrupt for dash");
         // player.casting = None;
         *casting_command = Some(CastingCommand::Interrupt);
     }
@@ -209,7 +210,11 @@ fn dash(
         if dashing.0.tick(delta).just_finished() {
             needs_interrupt = true;
         }
-        if casting_command.is_some() {
+        // TODO: so maybe events?
+        if let Some(CastingCommand::Cast(SpellKind::Dash)) = casting_command.as_ref() {
+            // don't interrupt dash on dash
+        } else {
+            log::debug!("found interrupt for dash");
             needs_interrupt = true;
         }
         if needs_interrupt {
@@ -223,9 +228,11 @@ fn dash(
 fn start_dash(
     query: Query<&mut Velocity, Added<Dashing>>,
     last_velocity: Res<LastVelocity>,
-    mut casting_command: ResMut<Option<CastingCommand>>,
+    // mut casting_command: ResMut<Option<CastingCommand>>,
 ) {
-    let _ = casting_command.take();
+    // TODO: maybe move to events after all
+    // or move this take inside
+    // let _ = casting_command.take();
     query.for_each_mut(|mut velocity| velocity.0 = last_velocity.0 * DASH_VEL_MULTI);
 }
 
@@ -282,6 +289,7 @@ fn process_casting(
                 SpellKind::Smoke => {}
                 SpellKind::Emp => {}
             }
+            let _ = cast_res.take();
         }
     }
 }
@@ -302,7 +310,7 @@ impl Plugin for PlayerPlugin {
                 .with_system(move_keyboard_for_dashing.system().label("control"))
                 .with_system(start_dash.system().before("control"))
                 // TODO: is it control or after control
-                .with_system(dash.system().label("control"))
+                .with_system(dash.system().after("control"))
                 .with_system(process_casting.system().after("control")),
         );
     }

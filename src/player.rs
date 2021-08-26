@@ -4,17 +4,17 @@ use crate::{map::SpawnPoint, movement::Velocity, GameState};
 
 pub const PLAYER_SIZE: f32 = 32.;
 const PLAYER_SPEED: f32 = 2.;
-const LIGHT_RADIUS: f32 = 4000.;
+const LIGHT_RADIUS: f32 = 3000.;
 
-const DASH_CAST_TIME: f32 = 0.1;
+const DASH_CAST_TIME: f32 = 0.0;
 const SMOKE_CAST_TIME: f32 = 1.0;
 const EMP_CAST_TIME: f32 = 1.5;
 
-const DASH_DURATION: f32 = 0.3;
+const DASH_DURATION: f32 = 0.5;
 const SMOKE_DURATION: f32 = 1.0;
 const EMP_DURATION: f32 = 1.5;
 
-const DASH_VEL_MULTI: f32 = 10.;
+const DASH_VEL_MULTI: f32 = 3.;
 
 struct CastingSpell {
     kind: SpellKind,
@@ -64,7 +64,8 @@ impl SpellKind {
 struct LastVelocity(Vec2);
 impl Default for LastVelocity {
     fn default() -> Self {
-        Self(Vec2::new(0., -1.))
+        // TODO: init with modified player speed
+        Self(Vec2::new(0., -PLAYER_SPEED))
     }
 }
 struct Dashing(Timer);

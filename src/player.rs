@@ -93,14 +93,14 @@ fn spawn_player(
         color: Color::rgba(1., 1., 1., 1.),
         texture: Some(particle),
     });
-    let spawn = spawn.0.expect("loaded");
-    let spawn = (spawn, 0.5).into();
+    // let spawn = spawn.0.expect("loaded");
+    // let spawn = (spawn, 0.5).into();
 
     commands
         .spawn_bundle(SpriteBundle {
             sprite,
             material,
-            transform: Transform::from_translation(spawn),
+            // transform: Transform::from_translation(spawn),
             ..Default::default()
         })
         .insert(Player)
@@ -110,7 +110,7 @@ fn spawn_player(
                 sprite: light,
                 material: light_material,
                 visible: Visible {
-                    is_visible: true,
+                    is_visible: false,
                     is_transparent: true,
                 },
                 ..Default::default()

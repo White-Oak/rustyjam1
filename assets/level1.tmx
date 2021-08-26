@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-up" width="32" height="16" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="13">
+ <tileset firstgid="1" name="Yellow Brick Floor" tilewidth="32" tileheight="32" tilecount="24" columns="4">
+  <image source="Yellow Dungeon Tileset v1.1.1/Yellow Brick Floor.png" width="128" height="192"/>
+ </tileset>
+ <tileset firstgid="25" name="Yellow Brick Pits" tilewidth="32" tileheight="32" tilecount="18" columns="6">
+  <image source="Yellow Dungeon Tileset v1.1.1/Yellow Brick Pits.png" width="192" height="96"/>
+ </tileset>
+ <tileset firstgid="43" name="Yellow Brick Wall" tilewidth="32" tileheight="32" tilecount="8" columns="8">
+  <image source="Yellow Dungeon Tileset v1.1.1/Yellow Brick Wall.png" width="256" height="32"/>
+ </tileset>
+ <tileset firstgid="51" name="Yellow Dungeon Tileset" tilewidth="32" tileheight="32" tilecount="44" columns="11">
+  <image source="Yellow Dungeon Tileset v1.1.1/Yellow Dungeon Tileset.png" width="352" height="128"/>
+ </tileset>
+ <layer id="1" name="Tile Layer 1" width="32" height="16" locked="1">
+  <data encoding="csv">
+51,45,45,47,45,45,70,52,52,52,52,52,52,52,52,52,52,52,52,52,52,52,52,52,52,52,52,52,52,55,45,53,
+51,5,5,21,15,2,58,8,20,12,18,18,12,23,3,1,13,5,12,15,15,22,16,22,11,4,10,21,3,15,9,53,
+51,10,9,24,24,22,68,8,7,16,9,23,23,2,14,11,4,23,4,8,3,23,6,13,3,21,19,17,21,16,14,53,
+51,13,1,8,9,6,68,3,9,9,14,18,18,14,7,10,24,14,4,21,20,18,22,17,7,4,3,5,18,11,3,53,
+51,15,23,6,12,4,68,8,16,22,1,21,7,14,24,23,10,15,21,23,8,21,16,16,9,18,17,23,12,11,10,53,
+51,3,7,12,21,11,68,22,8,3,19,3,11,10,15,16,23,15,11,8,22,14,4,9,6,18,23,7,15,24,11,53,
+51,11,1,13,21,10,79,9,18,20,3,15,7,25,26,27,10,18,6,13,8,10,24,1,14,23,7,6,22,14,1,53,
+51,23,23,17,19,6,5,10,12,13,1,24,1,31,28,33,22,7,8,21,3,2,14,2,13,16,9,24,12,14,19,53,
+51,5,12,13,6,24,21,11,13,12,15,4,2,37,38,39,9,15,14,20,21,23,1,18,4,10,4,23,11,22,14,53,
+51,11,6,18,21,19,23,5,5,20,4,4,19,15,11,15,1,2,17,2,14,24,20,10,5,13,8,16,22,5,8,53,
+51,2,19,18,14,10,17,21,17,22,7,10,21,14,3,11,9,19,15,7,23,19,23,6,19,4,24,6,22,16,13,53,
+51,3,23,1,14,3,12,18,7,4,21,5,17,7,10,4,21,6,19,16,9,16,4,15,19,10,5,19,10,17,20,53,
+51,18,1,18,21,7,6,5,14,19,22,22,21,8,10,22,6,11,15,2,18,9,2,16,3,13,10,1,8,20,21,53,
+51,14,22,21,20,13,19,13,10,13,7,14,16,21,4,14,14,4,11,1,23,3,14,4,6,24,21,18,6,10,17,53,
+77,19,16,12,10,9,1,3,16,9,4,8,17,19,23,4,12,12,6,1,17,16,3,3,19,22,17,15,6,11,24,76,
+30,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,30
+</data>
+ </layer>
+ <objectgroup id="3" name="Spawn" locked="1">
+  <object id="12" x="86.6667" y="69.3333" width="44" height="32"/>
+ </objectgroup>
+ <objectgroup id="2" name="Obstacles">
+  <object id="1" x="4" y="-122" width="1019" height="123"/>
+  <object id="3" x="196" y="-68" width="25.3333" height="289.333"/>
+  <object id="4" x="996" y="-76" width="58.6667" height="608"/>
+  <object id="6" x="-12.1667" y="481.167" width="1019" height="155"/>
+  <object id="7" x="-30.6667" y="-129.333" width="58.6667" height="608"/>
+  <object id="8" x="446.667" y="222.667" width="33.3333" height="17.3333"/>
+ </objectgroup>
+</map>

@@ -6,11 +6,9 @@ use bevy::{
 };
 use itertools::Itertools;
 
-use crate::{
-    perlin::{PerlinBundle, PerlinPipelineHandle},
-    player::Player,
-    GameState,
-};
+use crate::{GameState, perlin::{PerlinBundle, PerlinPipelineHandle}, player::{LIGHT_RADIUS, Player}};
+
+const SHADER_SIZE: f32 = LIGHT_RADIUS / (35. / 3.);
 
 fn base_color() -> Vec3 {
     Vec3::splat(0.)
@@ -25,7 +23,8 @@ fn spawn_smoke(
     query.for_each(|entity| {
         println!("GO GO GO GO");
         let mut v_pos = vec![[0., 0.]];
-        let radius = 300.;
+        let radius = SHADER_SIZE;
+        // x = 
         let origin = Vec2::new(radius, 0.);
         let mut indices = vec![];
         let divisions = 180;
@@ -40,8 +39,8 @@ fn spawn_smoke(
             indices.extend_from_slice(&[prev as u32, next as u32, 0]);
         }
         indices.extend_from_slice(&[1, 0, divisions]);
-        let uv: Vec<_> = once(-0.4)
-            .chain(repeat(1.1).take(divisions as usize))
+        let uv: Vec<_> = once(-0.5)
+            .chain(repeat(1.0).take(divisions as usize))
             .collect();
         let mut mesh = Mesh::new(bevy::render::pipeline::PrimitiveTopology::TriangleList);
         mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, v_pos);

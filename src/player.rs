@@ -1,10 +1,15 @@
 use bevy::{log, prelude::*};
 
-use crate::{map::SpawnPoint, movement::Velocity, smoke_bomb::SmokeBomb, GameState};
+use crate::{
+    map::SpawnPoint,
+    movement::Velocity,
+    smoke_bomb::{SmokeBomb, SMOKE_BOMB_RADIUS},
+    GameState,
+};
 
 pub const PLAYER_SIZE: f32 = 32.;
 const PLAYER_SPEED: f32 = 2.;
-const LIGHT_RADIUS: f32 = 3500.;
+pub const LIGHT_RADIUS: f32 = 10000.;
 
 const DASH_CAST_TIME: f32 = 0.0;
 const SMOKE_CAST_TIME: f32 = 1.0;
@@ -295,7 +300,9 @@ fn process_casting(
                             casting.kind.duration(),
                             false,
                         )))
-                        .insert(SmokeBomb);
+                        .insert(SmokeBomb {
+                            radius: SMOKE_BOMB_RADIUS,
+                        });
                     log::debug!("casted smoke bomb");
                 }
                 SpellKind::Emp => {}
@@ -305,7 +312,11 @@ fn process_casting(
     }
 }
 
-fn despawn_duration_spells(mut commands: Commands, time: Res<Time>, query: Query<(Entity, &mut DurationSpell)>){
+fn despawn_duration_spells(
+    mut commands: Commands,
+    time: Res<Time>,
+    query: Query<(Entity, &mut DurationSpell)>,
+) {
     query.for_each_mut(|(entity, mut spell)| {
         if spell.0.tick(time.delta()).finished() {
             log::debug!("despawning a spell");
@@ -332,7 +343,7 @@ impl Plugin for PlayerPlugin {
                 // TODO: is it control or after control
                 .with_system(dash.system().after("control"))
                 .with_system(process_casting.system().after("control"))
-                .with_system(despawn_duration_spells.system())
+                .with_system(despawn_duration_spells.system()),
         );
     }
 }

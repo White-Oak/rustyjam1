@@ -33,7 +33,7 @@ fn main() {
             height: 1080.0 * 0.8,
             ..Default::default()
         })
-        .insert_resource(ClearColor(Color::rgb(0.3, 0.3, 0.3)))
+        .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .insert_resource(Msaa { samples: 8 })
         .add_plugins(DefaultPlugins)
         // .add_plugin(InspectorPlugin::<InspectorQuery<&mut PerlinComponent>>::new())

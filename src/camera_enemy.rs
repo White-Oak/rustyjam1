@@ -3,11 +3,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{
-    perlin::{NoiseColorComponent, PerlinBundle, PerlinPipelineHandle},
-    player::{Dashing, Player},
-    GameState,
-};
+use crate::{GameState, perlin::{NoiseColorComponent, PerlinBundle, PerlinPipelineHandle}, player::{Dashing, Player}, smoke_bomb::SmokeBomb};
 
 /// (position, start_a, radius)
 #[derive(Debug, Clone, Copy)]
@@ -21,6 +17,8 @@ pub struct CameraSpawn {
 
 const NOISE_RESOLUTION: f32 = 2000.;
 const NOISE_OCTAVE: f32 = 0.1;
+const TRANSPARENCY_BASES: [f32; 3] = [0.8, 0.2, 0.2];
+const CAMERA_INDICES: [u32; 3] = [0, 1, 2];
 
 #[derive(Debug)]
 struct Camera {
@@ -29,6 +27,7 @@ struct Camera {
     // in radians
     end_angle: f32,
     radius: f32,
+    // TODO: I don't really need any of the above fields
     points: [Vec2; 3],
 }
 
@@ -39,10 +38,7 @@ fn spawn_camera(
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
     // x is used for transparency going further from start
-    // let uv = vec![[1.0, 0.0], [0., 0.], [0., 0.]];
     for spawn in spawns.iter() {
-        let uv = vec![0.8, 0.2, 0.2];
-        let indices = vec![0, 1, 2];
         let mut mesh = Mesh::new(bevy::render::pipeline::PrimitiveTopology::TriangleList);
         let mut v_pos = vec![[0., 0.]];
         let angles = [spawn.start_angle, spawn.end_angle];
@@ -55,8 +51,8 @@ fn spawn_camera(
         }
         let points: [Vec2; 3] = [v_pos[0].into(), v_pos[1].into(), v_pos[2].into()];
         mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, v_pos);
-        mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices.clone())));
-        mesh.set_attribute(Mesh::ATTRIBUTE_UV_0, uv.clone());
+        mesh.set_indices(Some(bevy::render::mesh::Indices::U32(CAMERA_INDICES.to_vec())));
+        mesh.set_attribute(Mesh::ATTRIBUTE_UV_0, TRANSPARENCY_BASES.to_vec());
 
         commands
             .spawn_bundle(MeshBundle {
@@ -107,6 +103,7 @@ fn is_in_triangle(s: Vec2, triangle: [Vec2; 3]) -> bool {
 
 fn detect_player(
     cameras: Query<(&Camera, &Transform, &mut NoiseColorComponent)>,
+    smoke_bombs: Query<(&SmokeBomb, &Transform)>,
     player: Query<&Transform, (With<Player>, Without<Dashing>)>,
 ) {
     let player_tr = if let Ok(x) = player.single() {
@@ -114,12 +111,20 @@ fn detect_player(
     } else {
         return;
     };
+    let mut is_smoked = false;
+    smoke_bombs.for_each(|(bomb, tr)| {
+        let dist = player_tr - tr.translation.xy();
+        if dist.length_squared() < bomb.radius * bomb.radius {
+            is_smoked = true;
+            // TODO: break early?
+        }
+    });
     let base_color = base_color();
     let detected_color = detected_color();
     cameras.for_each_mut(|(cam, tr, mut color)| {
         let tr = tr.translation.xy();
         let player_tr = player_tr - tr;
-        if is_in_triangle(player_tr, cam.points) {
+        if !is_smoked && is_in_triangle(player_tr, cam.points) {
             color.value = detected_color;
         } else {
             color.value = base_color;

@@ -9,7 +9,9 @@ use itertools::Itertools;
 
 use crate::{GameState, perlin::{PerlinBundle, PerlinPipelineHandle}};
 
-pub struct SmokeBomb;
+pub const SMOKE_BOMB_RADIUS: f32 = 50.;
+
+pub struct SmokeBomb { pub(crate) radius: f32}
 
 fn base_color() -> Vec3 {
     Vec3::splat(0.0125)
@@ -17,14 +19,13 @@ fn base_color() -> Vec3 {
 
 fn spawn_smoke(
     mut commands: Commands,
-    query: Query<(Entity,&Transform), Added<SmokeBomb>>,
+    query: Query<(Entity,&Transform, &SmokeBomb), Added<SmokeBomb>>,
     pp_handle: Res<PerlinPipelineHandle>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    query.for_each(|(entity, tr)| {
-        println!("GO GO GO GO");
+    query.for_each(|(entity, tr, bomb)| {
         let mut v_pos = vec![[0., 0.]];
-        let radius = 100.;
+        let radius = bomb.radius;
         let origin = Vec2::new(radius, 0.);
         let mut indices = vec![];
         let divisions = 180;

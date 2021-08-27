@@ -1,19 +1,19 @@
 mod camera_enemy;
+mod light_radius;
 mod map;
 mod movement;
 mod perlin;
 mod player;
-mod ui;
 mod smoke_bomb;
-mod light_radius;
+mod ui;
 
-use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*, };
+use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
-use bevy_inspector_egui::{InspectorPlugin, WorldInspectorPlugin, widgets::InspectorQuery};
+use bevy_inspector_egui::{widgets::InspectorQuery, };
 use camera_enemy::EnemyCameraPlugin;
 use light_radius::LightRadiusPlugin;
 use map::MapPlugin;
-use perlin::{NoiseColorComponent, PerlinComponent, PerlinPlugin, TimeComponent};
+use perlin::PerlinPlugin;
 use smoke_bomb::SmokeBombPlugin;
 use ui::UiPlugin;
 

@@ -1,14 +1,13 @@
 use bevy::{
     core::Bytes,
     prelude::{
-        shape::{Plane, Quad},
         *,
     },
     reflect::TypeUuid,
     render::{
         pipeline::{BlendFactor, BlendOperation, BlendState, PipelineDescriptor, RenderPipeline},
         render_graph::{
-            base::node::MAIN_PASS, AssetRenderResourcesNode, RenderGraph, RenderResourcesNode,
+            base::node::MAIN_PASS, RenderGraph, RenderResourcesNode,
         },
         renderer::{RenderResource, RenderResourceType, RenderResources},
         shader::{ShaderStage, ShaderStages},
@@ -43,7 +42,6 @@ pub struct PerlinPipelineHandle(Handle<PipelineDescriptor>);
 #[uuid = "af8c8bb6-bab2-48e9-9251-6b757d28afda"]
 #[derive(Inspectable)]
 pub struct TimeComponent {
-    #[inspectable(min = 0.0)]
     value: f32,
 }
 
@@ -74,12 +72,6 @@ impl RenderResource for PerlinComponent {
     }
 
     fn write_buffer_bytes(&self, buffer: &mut [u8]) {
-        // let (color_a_buf, rest) = buffer.split_at_mut(16);
-        // self.color_a.write_bytes(color_a_buf);
-
-        // let (color_b_buf, rest) = rest.split_at_mut(16);
-        // self.color_b.write_bytes(color_b_buf);
-
         let (buffer, rest) = buffer.split_at_mut(4);
         self.resolution.write_bytes(buffer);
 

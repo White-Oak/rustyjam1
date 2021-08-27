@@ -12,9 +12,6 @@ use crate::{
     GameState,
 };
 
-pub struct SmokeBomb;
-pub struct LightRadius;
-
 fn base_color() -> Vec3 {
     Vec3::splat(0.)
 }

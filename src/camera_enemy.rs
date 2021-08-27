@@ -29,6 +29,7 @@ struct Camera {
     // in radians
     end_angle: f32,
     radius: f32,
+    points: [Vec2; 3],
 }
 
 fn spawn_camera(
@@ -52,6 +53,7 @@ fn spawn_camera(
             let res = rotation_mat * origin;
             v_pos.push(res.into());
         }
+        let points: [Vec2; 3] = [v_pos[0].into(), v_pos[1].into(), v_pos[2].into()];
         mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, v_pos);
         mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices.clone())));
         mesh.set_attribute(Mesh::ATTRIBUTE_UV_0, uv.clone());
@@ -66,6 +68,7 @@ fn spawn_camera(
                 start_angle: spawn.start_angle,
                 end_angle: spawn.end_angle,
                 radius: spawn.radius,
+                points,
             })
             .insert_bundle(PerlinBundle::new(
                 &pp_handle,
@@ -84,6 +87,24 @@ fn detected_color() -> Vec3 {
     Vec3::new(0.9, 0.1, 0.)
 }
 
+// https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
+fn is_in_triangle(s: Vec2, triangle: [Vec2; 3]) -> bool {
+    let [a, b, c] = triangle;
+    let as_x = s.x - a.x;
+    let as_y = s.y - a.y;
+
+    let s_ab = (b.x - a.x) * as_y - (b.y - a.y) * as_x > 0.;
+    let s_ac = (c.x - a.x) * as_y - (c.y - a.y) * as_x > 0.;
+
+    if s_ac == s_ab {
+        return false;
+    }
+
+    let last = (c.x - b.x) * (s.y - b.y) - (c.y - b.y) * (s.x - b.x) > 0.;
+
+    last == s_ab
+}
+
 fn detect_player(
     cameras: Query<(&Camera, &Transform, &mut NoiseColorComponent)>,
     player: Query<&Transform, (With<Player>, Without<Dashing>)>,
@@ -93,24 +114,15 @@ fn detect_player(
     } else {
         return;
     };
-    let origin = Vec2::new(1., 0.);
     let base_color = base_color();
     let detected_color = detected_color();
     cameras.for_each_mut(|(cam, tr, mut color)| {
-        let mut is_base_color = true;
         let tr = tr.translation.xy();
         let player_tr = player_tr - tr;
-        let angle = origin.angle_between(player_tr);
-        if angle > cam.start_angle && angle < cam.end_angle {
-            let dist = player_tr.length_squared();
-            if dist < cam.radius * cam.radius {
-                is_base_color = false;
-            }
-        }
-        if is_base_color {
-            color.value = base_color;
-        } else {
+        if is_in_triangle(player_tr, cam.points) {
             color.value = detected_color;
+        } else {
+            color.value = base_color;
         }
     })
 }

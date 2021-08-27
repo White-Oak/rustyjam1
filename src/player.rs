@@ -11,7 +11,7 @@ const SMOKE_CAST_TIME: f32 = 1.0;
 const EMP_CAST_TIME: f32 = 1.5;
 
 const DASH_DURATION: f32 = 0.5;
-const SMOKE_DURATION: f32 = 1.0;
+const SMOKE_DURATION: f32 = 5.0;
 const EMP_DURATION: f32 = 1.5;
 
 const DASH_VEL_MULTI: f32 = 3.;
@@ -59,6 +59,8 @@ impl SpellKind {
         }
     }
 }
+
+struct DurationSpell(Timer);
 
 #[derive(Debug)]
 struct LastVelocity(Vec2);
@@ -289,6 +291,10 @@ fn process_casting(
                     commands
                         .spawn()
                         .insert(*tr)
+                        .insert(DurationSpell(Timer::from_seconds(
+                            casting.kind.duration(),
+                            false,
+                        )))
                         .insert(SmokeBomb);
                     log::debug!("casted smoke bomb");
                 }
@@ -297,6 +303,15 @@ fn process_casting(
             let _ = cast_res.take();
         }
     }
+}
+
+fn despawn_duration_spells(mut commands: Commands, time: Res<Time>, query: Query<(Entity, &mut DurationSpell)>){
+    query.for_each_mut(|(entity, mut spell)| {
+        if spell.0.tick(time.delta()).finished() {
+            log::debug!("despawning a spell");
+            commands.entity(entity).despawn_recursive();
+        }
+    });
 }
 
 pub struct PlayerPlugin;
@@ -316,7 +331,8 @@ impl Plugin for PlayerPlugin {
                 .with_system(start_dash.system().before("control"))
                 // TODO: is it control or after control
                 .with_system(dash.system().after("control"))
-                .with_system(process_casting.system().after("control")),
+                .with_system(process_casting.system().after("control"))
+                .with_system(despawn_duration_spells.system())
         );
     }
 }

@@ -14,6 +14,7 @@ use bevy::{
         shader::{ShaderStage, ShaderStages},
     },
 };
+use bevy_inspector_egui::Inspectable;
 
 const VERTEX_SHADER2: &str = r"
 #version 450
@@ -40,21 +41,56 @@ pub struct PerlinPipelineHandle(Handle<PipelineDescriptor>);
 
 #[derive(RenderResources, Default, TypeUuid)]
 #[uuid = "af8c8bb6-bab2-48e9-9251-6b757d28afda"]
-struct TimeComponent {
+#[derive(Inspectable)]
+pub struct TimeComponent {
+    #[inspectable(min = 0.0)]
     value: f32,
 }
 
 #[derive(RenderResources, Default, TypeUuid)]
 #[uuid = "10731270-61b9-4d43-b6de-6686fe2f88c5"]
+#[derive(Inspectable)]
 pub struct NoiseColorComponent {
     pub value: Vec3,
 }
 
 #[derive(RenderResources, Default, TypeUuid)]
+#[render_resources(from_self)]
 #[uuid = "4218782a-4931-4983-8188-121dc3cf3be1"]
+#[derive(Inspectable)]
+#[repr(C)]
 pub struct PerlinComponent {
-    pub resolution: Vec2,
+    pub resolution: f32,
+    pub first_octave: f32
 }
+
+impl RenderResource for PerlinComponent {
+    fn resource_type(&self) -> Option<RenderResourceType> {
+        Some(RenderResourceType::Buffer)
+    }
+
+    fn buffer_byte_len(&self) -> Option<usize> {
+        Some(8)
+    }
+
+    fn write_buffer_bytes(&self, buffer: &mut [u8]) {
+        // let (color_a_buf, rest) = buffer.split_at_mut(16);
+        // self.color_a.write_bytes(color_a_buf);
+
+        // let (color_b_buf, rest) = rest.split_at_mut(16);
+        // self.color_b.write_bytes(color_b_buf);
+
+        let (buffer, rest) = buffer.split_at_mut(4);
+        self.resolution.write_bytes(buffer);
+
+        self.first_octave.write_bytes(rest);
+    }
+
+    fn texture(&self) -> Option<&Handle<Texture>> {
+        None
+    }
+}
+
 
 #[derive(Bundle)]
 pub struct PerlinBundle {
@@ -67,10 +103,10 @@ pub struct PerlinBundle {
 }
 
 impl PerlinBundle {
-    pub fn new(handle: &PerlinPipelineHandle, resolution: Vec2, color: Vec3) -> Self {
+    pub fn new(handle: &PerlinPipelineHandle, resolution: f32, first_octave: f32, color: Vec3) -> Self {
         PerlinBundle {
             time: TimeComponent::default(),
-            noise: { PerlinComponent { resolution } },
+            noise:  PerlinComponent { resolution, first_octave} ,
             render_pipelines: RenderPipelines::from_pipelines(vec![RenderPipeline::new(
                 handle.0.clone(),
             )]),
@@ -84,7 +120,7 @@ impl PerlinBundle {
                 is_visible: true,
             },
             color: NoiseColorComponent {
-                value: color
+                value: color,
             },
         }
     }
@@ -92,7 +128,7 @@ impl PerlinBundle {
 
 fn animate_shader(time: Res<Time>, mut query: Query<&mut TimeComponent>) {
     for mut time_component in query.iter_mut() {
-        time_component.value = time.seconds_since_startup() as f32;
+        time_component.value = time.seconds_since_startup() as f32 / 2.;
     }
 }
 
@@ -108,11 +144,18 @@ impl FromWorld for PerlinPipelineHandle {
             "color_component",
             RenderResourcesNode::<NoiseColorComponent>::new(true),
         );
+        render_graph.add_system_node(
+            "perlin_component",
+            RenderResourcesNode::<PerlinComponent>::new(true),
+        );
         render_graph
             .add_node_edge("time_component", MAIN_PASS)
             .unwrap();
         render_graph
             .add_node_edge("color_component", MAIN_PASS)
+            .unwrap();
+        render_graph
+            .add_node_edge("perlin_component", MAIN_PASS)
             .unwrap();
 
         let mut shaders: Mut<Assets<Shader>> = world.get_resource_mut().expect("shaders");

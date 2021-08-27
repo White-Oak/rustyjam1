@@ -9,12 +9,15 @@
 precision mediump float;
 #endif
 
-//uniform vec2 u_resolution;
 layout(set = 2, binding = 0) uniform TimeComponent_value {
     float time;
 };
 layout(set = 2, binding = 1) uniform NoiseColorComponent_value {
     vec3 base_color;
+};
+layout(set = 2, binding = 2) uniform PerlinComponent {
+    float resolution;
+    float first_octave;
 };
 layout(location = 0) in float uv;
 layout(location = 1) in vec2 pos;
@@ -66,14 +69,17 @@ float classicPerlinNoise(vec2 P){
 
 void main()
 {
-    vec2 xy = pos / vec2(200);
+    vec2 xy = pos / vec2(resolution);
 
-    float noise = classicPerlinNoise(xy);
-    noise = 0.2*sin(time + 6.2831 * noise);
-    float clamped = min(noise, 0.1);
-    vec4 resulting_noise = vec4(base_color, 0.6 + clamped);
+float noise_part = 0.2;
+float n = 0;
+n+= noise_part * classicPerlinNoise(xy - vec2(time));
+n+= noise_part / 2. * classicPerlinNoise(-xy * 2. - vec2(time * 1.4));
+n+= noise_part / 4. * classicPerlinNoise(xy * 4. - vec2(time * 2.0));
+n+= noise_part / 8.  * classicPerlinNoise(-xy * 8. - vec2(time * 2.8));
+n+= noise_part / 16. * classicPerlinNoise(xy * 16. - vec2(time * 4.0));
 
-    vec4 result = resulting_noise * uv;
+    vec4 result = vec4(base_color, uv + n);
 
     o_Target = result;
 }

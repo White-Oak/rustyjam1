@@ -3,7 +3,11 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{GameState, perlin::{NoiseColorComponent, PerlinBundle, PerlinPipelineHandle}, player::{Dashing, Player}};
+use crate::{
+    perlin::{NoiseColorComponent, PerlinBundle, PerlinPipelineHandle},
+    player::{Dashing, Player},
+    GameState,
+};
 
 /// (position, start_a, radius)
 #[derive(Debug, Clone, Copy)]
@@ -15,7 +19,8 @@ pub struct CameraSpawn {
     pub radius: f32,
 }
 
-const NOISE_RESOLUTION: f32 = 3000.;
+const NOISE_RESOLUTION: f32 = 500.;
+const NOISE_MULTI: f32 = 0.4;
 
 #[derive(Debug)]
 struct Camera {
@@ -32,12 +37,11 @@ fn spawn_camera(
     pp_handle: Res<PerlinPipelineHandle>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    dbg!(&spawns as &Vec<_>);
     // x is used for transparency going further from start
     // let uv = vec![[1.0, 0.0], [0., 0.], [0., 0.]];
     for spawn in spawns.iter() {
-    let uv = vec![1., 0.5, 0.5];
-    let indices = vec![0, 1, 2];
+        let uv = vec![1., 0.5, 0.5];
+        let indices = vec![0, 1, 2];
         let mut mesh = Mesh::new(bevy::render::pipeline::PrimitiveTopology::TriangleList);
         let mut v_pos = vec![[0., 0.]];
         let angles = [spawn.start_angle, spawn.end_angle];
@@ -48,7 +52,6 @@ fn spawn_camera(
             let res = rotation_mat * origin;
             v_pos.push(res.into());
         }
-        dbg!(&v_pos);
         mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, v_pos);
         mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices.clone())));
         mesh.set_attribute(Mesh::ATTRIBUTE_UV_0, uv.clone());
@@ -64,7 +67,12 @@ fn spawn_camera(
                 end_angle: spawn.end_angle,
                 radius: spawn.radius,
             })
-            .insert_bundle(PerlinBundle::new(&pp_handle, Vec2::splat(NOISE_RESOLUTION), base_color()));
+            .insert_bundle(PerlinBundle::new(
+                &pp_handle,
+                NOISE_RESOLUTION,
+                NOISE_MULTI,
+                base_color(),
+            ));
     }
 }
 
@@ -80,10 +88,10 @@ fn detect_player(
     cameras: Query<(&Camera, &Transform, &mut NoiseColorComponent)>,
     player: Query<&Transform, (With<Player>, Without<Dashing>)>,
 ) {
-    let player_tr = if let Ok(x) = player.single(){
+    let player_tr = if let Ok(x) = player.single() {
         x.translation.xy()
     } else {
-        return
+        return;
     };
     let origin = Vec2::new(1., 0.);
     let base_color = base_color();

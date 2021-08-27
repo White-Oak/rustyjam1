@@ -1,5 +1,5 @@
 
-use std::iter::repeat;
+use std::iter::{once, repeat};
 
 use bevy::{
     math::{Mat2, Vec2},
@@ -12,7 +12,7 @@ use crate::{GameState, perlin::{PerlinBundle, PerlinPipelineHandle}};
 pub struct SmokeBomb;
 
 fn base_color() -> Vec3 {
-    Vec3::splat(0.1)
+    Vec3::splat(0.0125)
 }
 
 fn spawn_smoke(
@@ -27,18 +27,19 @@ fn spawn_smoke(
         let radius = 100.;
         let origin = Vec2::new(radius, 0.);
         let mut indices = vec![];
-        let divisions = 360;
+        let divisions = 180;
+        let one_angle = 360. / (divisions as f32);
         for angle in 0..divisions {
-            let angle = (angle as f32).to_radians();
+            let angle = (angle as f32).to_radians() * one_angle;
             let rotation_mat = Mat2::from_angle(angle);
             let res = rotation_mat * origin;
             v_pos.push(res.into());
         }
-        for (prev, next) in (1..(divisions - 1)).tuple_windows() {
+        for (prev, next) in (1..=divisions).tuple_windows() {
             indices.extend_from_slice(&[prev as u32, next as u32, 0]);
         }
-        indices.extend_from_slice(&[360, 1, 0]);
-        let uv: Vec<_> = repeat(1.).take(divisions + 1).collect();
+        indices.extend_from_slice(&[1, 0, divisions]);
+        let uv: Vec<_> = once(0.7).chain(repeat(1.1).take(divisions as usize)).collect();
         let mut mesh = Mesh::new(bevy::render::pipeline::PrimitiveTopology::TriangleList);
         mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, v_pos);
         mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices.clone())));
@@ -54,7 +55,8 @@ fn spawn_smoke(
             })
             .insert_bundle(PerlinBundle::new(
                 &pp_handle,
-                Vec2::splat(100.),
+                300.,
+                0.2,
                 base_color(),
             ));
     });

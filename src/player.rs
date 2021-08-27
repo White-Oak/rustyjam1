@@ -4,7 +4,7 @@ use crate::{map::SpawnPoint, movement::Velocity, smoke_bomb::SmokeBomb, GameStat
 
 pub const PLAYER_SIZE: f32 = 32.;
 const PLAYER_SPEED: f32 = 2.;
-const LIGHT_RADIUS: f32 = 3000.;
+const LIGHT_RADIUS: f32 = 5000.;
 
 const DASH_CAST_TIME: f32 = 0.0;
 const SMOKE_CAST_TIME: f32 = 1.0;
@@ -109,7 +109,7 @@ fn spawn_player(
                 sprite: light,
                 material: light_material,
                 visible: Visible {
-                    is_visible: false,
+                    is_visible: true,
                     is_transparent: true,
                 },
                 ..Default::default()

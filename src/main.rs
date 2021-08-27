@@ -5,11 +5,13 @@ mod perlin;
 mod player;
 mod ui;
 mod smoke_bomb;
+mod light_radius;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*, };
 use bevy_ecs_tilemap::prelude::*;
 use bevy_inspector_egui::{InspectorPlugin, WorldInspectorPlugin, widgets::InspectorQuery};
 use camera_enemy::EnemyCameraPlugin;
+use light_radius::LightRadiusPlugin;
 use map::MapPlugin;
 use perlin::{NoiseColorComponent, PerlinComponent, PerlinPlugin, TimeComponent};
 use smoke_bomb::SmokeBombPlugin;
@@ -34,8 +36,8 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.3, 0.3, 0.3)))
         .insert_resource(Msaa { samples: 8 })
         .add_plugins(DefaultPlugins)
-        .add_plugin(InspectorPlugin::<InspectorQuery<&mut PerlinComponent>>::new())
-        .add_plugin(InspectorPlugin::<InspectorQuery<&mut NoiseColorComponent>>::new())
+        // .add_plugin(InspectorPlugin::<InspectorQuery<&mut PerlinComponent>>::new())
+        // .add_plugin(InspectorPlugin::<InspectorQuery<&mut NoiseColorComponent>>::new())
         .add_state(GameState::LoadingLevel)
         .add_plugin(PlayerPlugin)
         .add_plugin(MovementPlugin)
@@ -47,6 +49,7 @@ fn main() {
         .add_plugin(FrameTimeDiagnosticsPlugin)
         .add_plugin(UiPlugin)
         .add_plugin(SmokeBombPlugin)
+        .add_plugin(LightRadiusPlugin)
         .add_startup_system(setup.system())
         .run();
 }

@@ -19,8 +19,8 @@ pub struct CameraSpawn {
     pub radius: f32,
 }
 
-const NOISE_RESOLUTION: f32 = 500.;
-const NOISE_MULTI: f32 = 0.4;
+const NOISE_RESOLUTION: f32 = 2000.;
+const NOISE_OCTAVE: f32 = 0.1;
 
 #[derive(Debug)]
 struct Camera {
@@ -40,7 +40,7 @@ fn spawn_camera(
     // x is used for transparency going further from start
     // let uv = vec![[1.0, 0.0], [0., 0.], [0., 0.]];
     for spawn in spawns.iter() {
-        let uv = vec![1., 0.5, 0.5];
+        let uv = vec![0.8, 0.2, 0.2];
         let indices = vec![0, 1, 2];
         let mut mesh = Mesh::new(bevy::render::pipeline::PrimitiveTopology::TriangleList);
         let mut v_pos = vec![[0., 0.]];
@@ -70,7 +70,7 @@ fn spawn_camera(
             .insert_bundle(PerlinBundle::new(
                 &pp_handle,
                 NOISE_RESOLUTION,
-                NOISE_MULTI,
+                NOISE_OCTAVE,
                 base_color(),
             ));
     }

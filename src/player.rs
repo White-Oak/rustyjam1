@@ -1,6 +1,7 @@
 use bevy::{log, prelude::*};
 
 use crate::{
+    cleanup::cleanup_system,
     map::SpawnPoint,
     movement::Velocity,
     smoke_bomb::{SmokeBomb, SMOKE_BOMB_RADIUS},
@@ -9,7 +10,7 @@ use crate::{
 
 pub const PLAYER_SIZE: f32 = 32.;
 const PLAYER_SPEED: f32 = 2.;
-pub const LIGHT_RADIUS: f32 = 10000.;
+pub const LIGHT_RADIUS: f32 = 3000.;
 
 const DASH_CAST_TIME: f32 = 0.0;
 const SMOKE_CAST_TIME: f32 = 1.0;
@@ -20,6 +21,8 @@ const SMOKE_DURATION: f32 = 50.0;
 const EMP_DURATION: f32 = 1.5;
 
 const DASH_VEL_MULTI: f32 = 3.;
+
+pub struct LevelMarker;
 
 struct CastingSpell {
     kind: SpellKind,
@@ -67,6 +70,8 @@ impl SpellKind {
 
 struct DurationSpell(Timer);
 
+struct MainTexture(Handle<ColorMaterial>);
+
 #[derive(Debug)]
 struct LastVelocity(Vec2);
 impl Default for LastVelocity {
@@ -79,49 +84,22 @@ pub struct Dashing(Timer);
 
 pub struct Player;
 
-fn spawn_player(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut assets: ResMut<Assets<ColorMaterial>>,
-    spawn: Res<SpawnPoint>,
-) {
-    let smile = asset_server.load("smile.png");
+fn spawn_player(mut commands: Commands, main_tex: Res<MainTexture>, spawn: Res<SpawnPoint>) {
     let sprite = Sprite::new(Vec2::splat(PLAYER_SIZE));
-    let material = assets.add(ColorMaterial {
-        color: Color::BLACK,
-        texture: Some(smile),
-    });
 
-    let particle = asset_server.load("13.png");
-    let light_size = Vec2::splat(LIGHT_RADIUS);
-    let light = Sprite::new(light_size / 2.);
-    let light_material = assets.add(ColorMaterial {
-        color: Color::rgba(1., 1., 1., 1.),
-        texture: Some(particle),
-    });
     let spawn = spawn.0.expect("loaded");
     let spawn = (spawn, 0.5).into();
 
     commands
         .spawn_bundle(SpriteBundle {
             sprite,
-            material,
+            material: main_tex.0.clone(),
             transform: Transform::from_translation(spawn),
             ..Default::default()
         })
         .insert(Player)
-        .insert(Velocity::default())
-        .with_children(|ec| {
-            ec.spawn_bundle(SpriteBundle {
-                sprite: light,
-                material: light_material,
-                visible: Visible {
-                    is_visible: true,
-                    is_transparent: true,
-                },
-                ..Default::default()
-            });
-        });
+        .insert(LevelMarker)
+        .insert(Velocity::default());
 }
 
 fn move_keyboard(
@@ -300,6 +278,7 @@ fn process_casting(
                             casting.kind.duration(),
                             false,
                         )))
+                        .insert(LevelMarker)
                         .insert(SmokeBomb {
                             radius: SMOKE_BOMB_RADIUS,
                         });
@@ -325,6 +304,20 @@ fn despawn_duration_spells(
     });
 }
 
+impl FromWorld for MainTexture {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world
+            .get_resource::<AssetServer>()
+            .expect("no assets server");
+        let handle = asset_server.load("smile.png");
+        let mut materials = world
+            .get_resource_mut::<Assets<ColorMaterial>>()
+            .expect("no materials");
+        let handle = materials.add(ColorMaterial::texture(handle));
+        MainTexture(handle)
+    }
+}
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
@@ -332,8 +325,13 @@ impl Plugin for PlayerPlugin {
         app.add_system_set(
             SystemSet::on_enter(GameState::Level).with_system(spawn_player.system()),
         )
+        .add_system_set(
+            SystemSet::on_exit(GameState::Level)
+                .with_system(cleanup_system::<LevelMarker>.system()),
+        )
         .init_resource::<LastVelocity>()
         .init_resource::<Option<Casting>>()
+        .init_resource::<MainTexture>()
         .add_event::<CastingCommand>()
         .add_system_set(
             SystemSet::on_update(GameState::Level)

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-up" width="320" height="320" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="46">
+<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-up" width="320" height="320" tilewidth="32" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="47">
  <tileset firstgid="1" name="Yellow Brick Floor" tilewidth="32" tileheight="32" tilecount="24" columns="4">
   <image source="Yellow Dungeon Tileset v1.1.1/Yellow Brick Floor.png" width="128" height="192"/>
  </tileset>
@@ -389,5 +389,8 @@
     <property name="start_angle" type="float" value="30"/>
    </properties>
   </object>
+ </objectgroup>
+ <objectgroup id="6" name="Treasure">
+  <object id="46" x="1918" y="286" width="9.99997" height="8.00003"/>
  </objectgroup>
 </map>

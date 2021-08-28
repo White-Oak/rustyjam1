@@ -12,20 +12,21 @@ mod button;
 mod cleanup;
 mod stats_screen;
 mod inventory;
+mod treasure;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 use bevy_inspector_egui::{InspectorPlugin, WorldInspectorPlugin, widgets::InspectorQuery};
-use bevy_prototype_lyon::plugin::ShapePlugin;
 use button::MyButtonPlugin;
 use camera_enemy::EnemyCameraPlugin;
 use inventory::InventoryScreenPlugin;
 use light_radius::LightRadiusPlugin;
 use main_menu_ui::MainMenuUiPlugin;
 use map::MapPlugin;
-use perlin::{NoiseColorComponent, PerlinPlugin};
-use smoke_bomb::{SmokeBomb, SmokeBombPlugin};
+use perlin::{PerlinPlugin};
+use smoke_bomb::{SmokeBombPlugin};
 use stats_screen::StatsScreenPlugin;
+use treasure::TreasurePlugin;
 use ui::UiPlugin;
 
 use crate::{movement::MovementPlugin, player::PlayerPlugin};
@@ -52,9 +53,7 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .insert_resource(Msaa { samples: 8 })
         .add_plugins(DefaultPlugins)
-        // .add_plugin(InspectorPlugin::<InspectorQuery<(Entity,)>>::new())
-        .add_plugin(WorldInspectorPlugin::new())
-        // .add_plugin(InspectorPlugin::<InspectorQuery<&mut NoiseColorComponent, With<SmokeBomb>>>::new())
+        // .add_plugin(WorldInspectorPlugin::new())
         .add_state(GameState::MainMenu)
         .add_plugin(PlayerPlugin)
         .add_plugin(MovementPlugin)
@@ -68,10 +67,10 @@ fn main() {
         .add_plugin(SmokeBombPlugin)
         .add_plugin(LightRadiusPlugin)
         .add_plugin(MainMenuUiPlugin)
-        // .add_plugin(ShapePlugin)
         .add_plugin(MyButtonPlugin)
         .add_plugin(StatsScreenPlugin)
         .add_plugin(InventoryScreenPlugin)
+        .add_plugin(TreasurePlugin)
         .add_startup_system(setup.system())
         .init_resource::<RobotoFont>()
         .run();

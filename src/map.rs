@@ -8,9 +8,7 @@ use bevy::{
 use bevy_ecs_tilemap::prelude::*;
 use tiled::PropertyValue;
 
-use crate::{
-    camera_enemy::CameraSpawn, items::PlayerItems, player::PLAYER_SIZE, GameState, MainCamera,
-};
+use crate::{GameState, MainCamera, camera_enemy::CameraSpawn, items::PlayerItems, main_menu_ui::SelectedLevel, player::{LevelMarker, PLAYER_SIZE}, treasure::TreasureSpawn};
 
 // pub struct TiledMapHandle(Handle<TiledMap>);
 
@@ -32,8 +30,12 @@ impl Boundaries {
     }
 }
 
-fn load(asset_server: Res<AssetServer>, mut current_level: ResMut<CurrentLevelHandle>) {
-    let handle: Handle<TiledMap> = asset_server.load("level1.tmx");
+fn load(
+    asset_server: Res<AssetServer>,
+    mut current_level: ResMut<CurrentLevelHandle>,
+    sel_level: Res<SelectedLevel>,
+) {
+    let handle: Handle<TiledMap> = asset_server.load(format!("level{}.tmx", sel_level.0).as_str());
     current_level.0 = handle;
 }
 
@@ -45,10 +47,12 @@ fn spawn_map(mut commands: Commands, current_level: Res<CurrentLevelHandle>) {
         map: Map::new(0u16, map_entity),
         transform: Transform::from_xyz(0.0, 0.0, 0.0),
         ..Default::default()
-    });
+    }).insert(LevelMarker);
 }
 
+#[allow(clippy::too_many_arguments)]
 fn load_boundaries(
+    mut commands: Commands,
     mut bounds: ResMut<Boundaries>,
     mut spawn: ResMut<SpawnPoint>,
     mut camera_spawns: ResMut<Vec<CameraSpawn>>,
@@ -85,6 +89,14 @@ fn load_boundaries(
                 spawn_x = spawn_obj.x;
                 spawn_y = map_y - spawn_obj.y;
                 spawn.0 = Some(Vec2::new(spawn_x, spawn_y));
+            }
+            "Treasure" => {
+                for obj in group.objects.iter() {
+                    commands
+                        .spawn()
+                        .insert(TreasureSpawn)
+                        .insert(Transform::from_xyz(obj.x, map_y - obj.y, 0.7));
+                }
             }
             "Cameras" => {
                 for spawn_obj in group.objects.iter() {
@@ -176,7 +188,11 @@ impl Plugin for MapPlugin {
             .init_resource::<SpawnPoint>()
             .init_resource::<Boundaries>()
             // .add_system(set_texture_filters_to_nearest.system())
-            .add_system_set(SystemSet::on_enter(GameState::LoadingLevel).with_system(load.system()).with_system(load_stats.system()))
+            .add_system_set(
+                SystemSet::on_enter(GameState::LoadingLevel)
+                    .with_system(load.system())
+                    .with_system(load_stats.system()),
+            )
             .add_system_set(
                 SystemSet::on_update(GameState::LoadingLevel).with_system(load_boundaries.system()),
             )

@@ -1,19 +1,11 @@
 use bevy::{log, prelude::*, window::WindowResized};
-use bevy_prototype_lyon::{prelude::*, shapes::SvgPathShape};
 use itertools::Itertools;
-use lyon_path::{
-    builder::BorderRadii,
-    geom::euclid::{Point2D, Size2D},
-    path::Builder,
-    traits::PathBuilder,
-    Path, Winding,
-};
 
 use crate::{
     button::{register_my_button, ClickedButtonEvent, MyButton, MyButtonBundle},
     cleanup::cleanup_system,
     inventory::ViewInvSlot,
-    items::{Item, PlayerItems, Slot},
+    items::{Item, PlayerItems, PlayerStatsMods, Slot},
     GameState, MainCamera, RobotoFont, HEIGHT, WIDTH,
 };
 
@@ -25,6 +17,9 @@ struct ClickedSlot(Slot);
 
 #[derive(Debug, Clone, Copy, Default)]
 struct ClickedLevel(u32);
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct SelectedLevel(pub u32);
 
 struct MainMenuMarker;
 
@@ -100,7 +95,6 @@ fn setup(
     mut cmds: Commands,
     asset_server: ResMut<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    items: Res<PlayerItems>,
 ) {
     let font_handle = asset_server.load("FiraSans-Bold.ttf");
 
@@ -128,8 +122,33 @@ fn setup(
             );
             cmds.spawn_bundle(Text2dBundle {
                 text: levels_header,
-                transform: Transform::from_xyz(0., 340., 0.001),
+                transform: Transform::from_xyz(307., 340., 0.001),
                 ..Default::default()
+            });
+
+            cmds.spawn_bundle(MyButtonBundle {
+                button: MyButton {
+                    size: Vec2::new(940., 156.),
+                    id: ClickedLevel(1),
+                },
+                transform: Transform::from_xyz(330., 220., 0.001),
+                ..Default::default()
+            })
+            .with_children(|cmds| {
+                let level1 = Text::with_section(
+                    "Level 1".to_string(),
+                    TextStyle {
+                        font: font_handle.clone(),
+                        font_size: 50.0,
+                        color: Color::rgb_u8(255, 252, 236),
+                    },
+                    Default::default(),
+                );
+                cmds.spawn_bundle(Text2dBundle {
+                    text: level1,
+                    transform: Transform::from_xyz(-330., 20., 0.001),
+                    ..Default::default()
+                });
             });
         });
 
@@ -234,7 +253,24 @@ fn clicked_slot(
         view.1 = 0;
         state
             .push(GameState::InventoryScreen)
-            .expect("cant move to stats screen");
+            .expect("cant move to inventory screen");
+    }
+}
+
+fn clicked_level(
+    mut event_reader: EventReader<ClickedButtonEvent<ClickedLevel>>,
+    mut state: ResMut<State<GameState>>,
+    items: Res<PlayerItems>,
+    mut stats: ResMut<PlayerStatsMods>,
+    mut sel_level: ResMut<SelectedLevel>,
+) {
+    for ClickedButtonEvent(ClickedLevel(level)) in event_reader.iter() {
+        log::debug!("moving to playing");
+        sel_level.0 = *level;
+        *stats = items.stats();
+        state
+            .set(GameState::LoadingLevel)
+            .expect("cant move to playing");
     }
 }
 
@@ -258,7 +294,9 @@ pub struct MainMenuUiPlugin;
 impl Plugin for MainMenuUiPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<PlayerItems>()
+            .init_resource::<PlayerStatsMods>()
             .init_resource::<Option<CurrentItemsView>>()
+            .init_resource::<SelectedLevel>()
             .add_system_set(SystemSet::on_enter(GameState::MainMenu).with_system(setup.system()))
             .add_system_set(
                 SystemSet::on_exit(GameState::MainMenu)
@@ -268,6 +306,7 @@ impl Plugin for MainMenuUiPlugin {
                 SystemSet::on_update(GameState::MainMenu)
                     .with_system(clicked_slot.system().after("button_click"))
                     .with_system(clicked_stats.system().after("button_click"))
+                    .with_system(clicked_level.system().after("button_click"))
                     .with_system(dispatch_items.system().label("dispatch_inventory"))
                     .with_system(change_camera_scale_from_resize.system()),
             );

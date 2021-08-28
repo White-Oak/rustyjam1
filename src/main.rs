@@ -7,6 +7,7 @@ mod player;
 mod smoke_bomb;
 mod ui;
 mod main_menu_ui;
+mod items;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_ecs_tilemap::prelude::*;

@@ -1,5 +1,6 @@
 use bevy::{log, prelude::*, window::WindowResized};
 use bevy_prototype_lyon::{prelude::*, shapes::SvgPathShape};
+use itertools::Itertools;
 use lyon_path::{
     builder::BorderRadii,
     geom::euclid::{Point2D, Size2D},
@@ -8,7 +9,10 @@ use lyon_path::{
     Path, Winding,
 };
 
-use crate::{GameState, HEIGHT, MainCamera, WIDTH};
+use crate::{
+    items::{Item, PlayerItems},
+    GameState, MainCamera, HEIGHT, WIDTH,
+};
 
 fn build_rectangle(width: f32, height: f32) -> Path {
     let mut builder = Builder::new();
@@ -44,377 +48,149 @@ fn get_color(r: u8, g: u8, b: u8) -> Color {
     )
 }
 
+fn light_text_color() -> Color {
+Color::rgb_u8(255, 252, 236)
+}
+
+fn draw_slot(
+    cmds: &mut ChildBuilder,
+    item: &Item,
+    asset_server: &AssetServer,
+    materials: &mut Assets<ColorMaterial>,
+) {
+    let font_handle = asset_server.load("Roboto-Regular.ttf");
+    let y = match item.slot {
+        crate::items::Slot::Head => 200.,
+        crate::items::Slot::Cloak => 35.,
+        crate::items::Slot::Lockpick => -135.,
+        crate::items::Slot::Boots => -301.,
+    };
+    let x = 95.;
+    let color = light_text_color();
+    let name = Text::with_section(
+        item.name.clone(),
+        TextStyle {
+            font: font_handle.clone(),
+            font_size: 21.,
+            color
+        },
+        TextAlignment {
+            vertical: VerticalAlign::Center,
+            horizontal: HorizontalAlign::Center
+        },
+    );
+    cmds.spawn_bundle(Text2dBundle {
+        text: name,
+        transform: Transform::from_xyz(x, y + 70., 0.001),
+        ..Default::default()
+    });
+
+    let text = item
+        .mods
+        .iter()
+        .map(|item_mod| item_mod.to_string())
+        .collect_vec()
+        .join("\n");
+    let item_mods = Text::with_section(
+        text,
+        TextStyle {
+            font: font_handle,
+            font_size: 15.0,
+            color
+        },
+        TextAlignment {
+            vertical: VerticalAlign::Center,
+            horizontal: HorizontalAlign::Center
+        },
+    );
+    cmds.spawn_bundle(Text2dBundle {
+        text: item_mods,
+        transform: Transform::from_xyz(x, y, 0.001),
+        ..Default::default()
+    });
+}
+
 fn setup(
     mut cmds: Commands,
     asset_server: ResMut<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    items: Res<PlayerItems>,
 ) {
-    // let font_handle = asset_server.load("FiraSans-Bold.ttf");
+    let font_handle = asset_server.load("FiraSans-Bold.ttf");
 
     let sprite = Sprite::new(Vec2::new(WIDTH, HEIGHT));
     let main_menu = materials.add(ColorMaterial::texture(asset_server.load("001.png")));
-    cmds.spawn_bundle(SpriteBundle{
+    cmds.spawn_bundle(SpriteBundle {
         sprite,
         material: main_menu,
-..Default::default()
+        ..Default::default()
     });
+
+    cmds.spawn()
+        .insert(Transform::from_xyz(-615., 0., 0.001))
+        .insert(GlobalTransform::default())
+        .with_children(|cmds| {
+            let levels_header = Text::with_section(
+                "Levels".to_string(),
+                TextStyle {
+                    font: font_handle.clone(),
+                    font_size: 60.0,
+                    color: Color::rgb_u8(255, 252, 236),
+                },
+                Default::default(),
+            );
+            cmds.spawn_bundle(Text2dBundle {
+                text: levels_header,
+                transform: Transform::from_xyz(0., 340., 0.001),
+                ..Default::default()
+            });
+        });
+
+    cmds.spawn()
+        .insert(Transform::from_xyz(530., 0., 0.001))
+        .insert(GlobalTransform::default())
+        .with_children(|mut cmds| {
+            let items_header = Text::with_section(
+                "Items".to_string(),
+                TextStyle {
+                    font: font_handle.clone(),
+                    font_size: 60.0,
+                    color: Color::rgb_u8(255, 252, 236),
+                },
+                Default::default(),
+            );
+            cmds.spawn_bundle(Text2dBundle {
+                text: items_header,
+                transform: Transform::from_xyz(0., 340., 0.001),
+                ..Default::default()
+            });
+
+            draw_slot(
+                &mut cmds,
+                items.head.equipped(),
+                &asset_server,
+                &mut materials,
+            );
+            draw_slot(
+                &mut cmds,
+                items.cloak.equipped(),
+                &asset_server,
+                &mut materials,
+            );
+            draw_slot(
+                &mut cmds,
+                items.lockpick.equipped(),
+                &asset_server,
+                &mut materials,
+            );
+            draw_slot(
+                &mut cmds,
+                items.boots.equipped(),
+                &asset_server,
+                &mut materials,
+            );
+        });
 }
-
-//     let bg = build_rectangle(3000., 3000.);
-//     let bg_color = get_color(1, 10, 33);
-//     let bg_color = Color::rgb_u8(0, 1, 3);
-//     cmds.spawn_bundle(GeometryBuilder::build_as(
-//         &bg,
-//         ShapeColors::new(bg_color),
-//         DrawMode::Fill(FillOptions::default()),
-//         Transform::from_xyz(0., 0., 0.001),
-//     ))
-//     .with_children(|cmds| {
-//         let next_bg_color = get_color(6, 14, 43);
-//         let next_bg_outline_color = get_color(0, 7, 66);
-//         let next_bg_outline_options = StrokeOptions::tolerance(0.1).with_line_width(6.);
-//         let main_bg_color = get_color(30, 13, 13);
-//         let left = build_rounded_rectangle(1280., 900.);
-//         cmds.spawn_bundle(GeometryBuilder::build_as(
-//             &left,
-//             ShapeColors::outlined(next_bg_color, next_bg_outline_color),
-//             DrawMode::Outlined {
-//                 fill_options: FillOptions::default(),
-//                 outline_options: next_bg_outline_options,
-//             },
-//             Transform::from_xyz(-210., 0., 0.001),
-//         ))
-//         .with_children(|cmds| {
-//             let levels_header = Text::with_section(
-//                     "Levels".to_string(),
-//                     TextStyle {
-//                         font: font_handle.clone(),
-//                         font_size: 60.0,
-//                         color: Color::rgb_u8(255, 252, 236),
-//                     },
-//                     Default::default()
-//                 );
-//             cmds.spawn_bundle(Text2dBundle {
-//                 text: levels_header,
-//                 transform: Transform::from_xyz(-470., 350., 0.001),
-//                 ..Default::default()
-//             });
-
-//             let levels = build_rounded_rectangle(1240., 700.);
-//             cmds.spawn_bundle(GeometryBuilder::build_as(
-//                 &levels,
-//                 ShapeColors::new(main_bg_color),
-//                 DrawMode::Fill(FillOptions::default()),
-//                 Transform::from_xyz(0., -50., 0.001),
-//             ));
-//         });
-
-//         let right = build_rounded_rectangle(400., 900.);
-//         cmds.spawn_bundle(GeometryBuilder::build_as(
-//             &right,
-//             ShapeColors::outlined(next_bg_color, next_bg_outline_color),
-//             DrawMode::Outlined {
-//                 fill_options: FillOptions::default(),
-//                 outline_options: next_bg_outline_options,
-//             },
-//             Transform::from_xyz(650., 0., 0.001),
-//         ))
-//         .with_children(|cmds| {
-//             let items_header = Text::with_section(
-//                     "Items".to_string(),
-//                     TextStyle {
-//                         font: font_handle.clone(),
-//                         font_size: 60.0,
-//                         color: Color::rgb_u8(255, 252, 236),
-//                     },
-//                     Default::default()
-//                 );
-//             cmds.spawn_bundle(Text2dBundle {
-//                 text: items_header,
-//                 transform: Transform::from_xyz(-45., 350., 0.001),
-//                 ..Default::default()
-//             });
-
-//             let levels = build_rounded_rectangle(360., 700.);
-//             cmds.spawn_bundle(GeometryBuilder::build_as(
-//                 &levels,
-//                 ShapeColors::new(main_bg_color),
-//                 DrawMode::Fill(FillOptions::default()),
-//                 Transform::from_xyz(0., -50., 0.001),
-//             ));
-//         });
-//     });
-// }
-
-// fn setup(
-//     mut commands: Commands,
-//     asset_server: ResMut<AssetServer>,
-//     mut materials: ResMut<Assets<ColorMaterial>>,
-// ) {
-//     let font_handle = asset_server.load("FiraSans-Bold.ttf");
-//     let text = Text::with_section(
-//         "TEST".to_string(),
-//         TextStyle {
-//             font: font_handle.clone(),
-//             font_size: 30.0,
-//             color: Color::WHITE,
-//         },
-//         TextAlignment {
-//             vertical: VerticalAlign::Top,
-//             horizontal: HorizontalAlign::Left,
-//         },
-//     );
-//     let mut ui_bundle = commands.spawn_bundle(UiCameraBundle::default());
-//     let cmds = ui_bundle // root node
-//         .commands();
-//     // let mut builder = Builder::new();
-//     // builder.add_rounded_rectangle(
-//     //     &euclid::Rect::new(Point2D::zero(), Size2D::new(100., 100.)),
-//     //     &BorderRadii::new(6.),
-//     //     Winding::Positive,
-//     // );
-//     // let path = builder.build();
-//     let node = Node {
-//         size: Vec2::new(WIDTH, HEIGHT),
-//     };
-
-//     // cmds.spawn_bundle(geometrybuilder::build_as(
-//     //     &path,
-//     //     shapecolors::new(color::white),
-//     //     drawmode::fill(filloptions::default()),
-//     //     transform::default(),
-//     // ));
-//     let bg_material = materials.add(Color::rgb_u8(0, 7, 66).into());
-//     let style = Style {
-//         position_type: PositionType::Relative,
-//         // position: Rect {
-//         //     right: Val::Px(0.),
-//         //     top: Val::Px(0.),
-//         //     left: Val::Px(0.),
-//         //     bottom: Val::Px(0.),
-//         //     ..Default::default()
-//         // },
-//         ..Default::default()
-//     };
-//     let rounded_rect = build_rounded_rectangle(1., 1.);
-//     cmds.spawn_bundle(NodeBundle {
-//         style: Style {
-//             size: Size {
-//                 width: Val::Percent(100.),
-//                 height: Val::Percent(100.),
-//             },
-//             min_size: Size {
-//                 width: Val::Percent(100.),
-//                 height: Val::Percent(100.),
-//             },
-//             padding: Rect::all(Val::Px(20.)),
-//             // position: Rect {
-//             //     left: Val::Px(10.),
-//             //     top: Val::Px(10.),
-//             //     ..Default::default()
-//             // },
-//             ..Default::default()
-//         },
-//         material: bg_material.clone(),
-//         ..Default::default()
-//     })
-//     .with_children(|cmds| {
-//         let left = build_rounded_rectangle(20., 100.);
-//         let right = build_rounded_rectangle(1., 1.);
-//         let next_bg_color = Color::rgb_u8(6, 14, 43);
-//         let next_bg_outline_color = Color::rgb_u8(0, 7, 66);
-//         let main_bg_color = Color::rgb_u8(30, 13, 13);
-//         let next_bg_outline_options = StrokeOptions::tolerance(0.1).with_line_width(0.5);
-//         cmds.spawn()
-//             .insert_bundle(GeometryBuilder::build_as(
-//                 &left,
-//                 ShapeColors::outlined(next_bg_color, next_bg_outline_color),
-//                 DrawMode::Outlined {
-//                     fill_options: FillOptions::default(),
-//                     outline_options: next_bg_outline_options,
-//                 },
-//                 Transform::default(),
-//             ))
-//             .insert(Node::default())
-//             .insert(Style {
-//                     flex_grow: 1.,
-//                     margin: Rect {
-//                         right: Val::Px(10.),
-//                         ..Default::default()
-//                     },
-//                     // flex_direction: FlexDirection::ColumnReverse,
-//                     padding: Rect::all(Val::Px(10.)),
-//                     ..Default::default()
-
-//             })
-//             .with_children(|cmds| {
-//                 let levels_header = Text::with_section(
-//                     "Levels".to_string(),
-//                     TextStyle {
-//                         font: font_handle,
-//                         font_size: 30.0,
-//                         // color: Color::rgb_u8(255, 252, 236),
-//                         color: Color::RED,
-//                     },
-//                     Default::default()
-//                     // TextAlignment {
-//                     //     vertical: VerticalAlign::Center,
-//                     //     horizontal: HorizontalAlign::Center,
-//                     // },
-//                 );
-//                 // cmds.spawn_bundle(NodeBundle {
-//                 //     material: materials.add(Color::NONE.into()),
-//                 //     ..Default::default()
-//                 // })
-//                 // .with_children(|cmds| {
-//                     cmds.spawn_bundle(TextBundle {
-//                         text: levels_header,
-//                         ..Default::default()
-//                     });
-//                 // });
-//                 // levels list
-//                 // cmds.spawn_bundle(GeometryBuilder::build_as(
-//                 //     &rounded_rect,
-//                 //     ShapeColors::new(main_bg_color),
-//                 //     DrawMode::Fill(FillOptions::default()),
-//                 //     Transform::default(),
-//                 // ))
-//                 // .insert(Node::default())
-//                 // .insert(Style {
-//                 //     size: Size {
-//                 //         width: Val::Px(200.),
-//                 //         height: Val::Px(200.),
-//                 //     },
-//                 //     ..Default::default()
-//                 // });
-//             });
-//         cmds.spawn_bundle(GeometryBuilder::build_as(
-//             &rounded_rect,
-//             ShapeColors::outlined(next_bg_color, next_bg_outline_color),
-//             DrawMode::Outlined {
-//                 fill_options: FillOptions::default(),
-//                 outline_options: next_bg_outline_options,
-//             },
-//             Transform::default(),
-//         ))
-//         .insert(node)
-//         .insert(Style {
-//             size: Size {
-//                 width: Val::Px(200.),
-//                 height: Val::Auto,
-//             },
-//             // min_size: Size {
-//             //     width: Val::Px(200.),
-//             //     height: Val::Auto,
-//             // },
-//             ..Default::default()
-//         });
-//         // cmds.spawn_bundle(NodeBundle {
-//         //     style: Style {
-
-//         //     },
-//         //     material: materials.add(Color::BLUE.into()),
-//         //     draw: (),
-//         //     visible: (),
-//         //     render_pipelines: (),
-//         //     transform: (),
-//         //     global_transform: (),
-//         // })
-//         // let rectangle = build_rectangle(1., 1.);
-//         // cmds.spawn_bundle(GeometryBuilder::build_as(
-//         //     &rectangle,
-//         //     ShapeColors::new(Color::BLUE),
-//         //     DrawMode::Fill(FillOptions::default()),
-//         //     Transform::default(),
-//         // )).insert(node).
-
-//         // cmds.spawn_bundle(GeometryBuilder::build_as(
-//         //     &path,
-//         //     ShapeColors::new(Color::WHITE),
-//         //     DrawMode::Fill(FillOptions::default()),
-//         //     Transform::default(),
-//         // ))
-//         // .insert(node)
-//         // .insert(style);
-//     });
-//     // let main_layout = asset_server.load("001.png");
-//     // let sprite = Sprite::new(Vec2::new(WIDTH, HEIGHT));
-//     // let node = Node {
-//     //     size: Vec2::new(WIDTH, HEIGHT),
-//     // };
-
-//     // let material = assets.add(ColorMaterial {
-//     //     color: Color::rgba(1., 1., 1., 1.),
-//     //     texture: Some(main_layout),
-//     // });
-//     // let style = Style {
-//     //     position_type: PositionType::Relative,
-//     //     // position: Rect {
-//     //     //     right: Val::Px(0.),
-//     //     //     top: Val::Px(0.),
-//     //     //     left: Val::Px(0.),
-//     //     //     bottom: Val::Px(0.),
-//     //     //     ..Default::default()
-//     //     // },
-//     //     size: Size {
-//     //         width: Val::Percent(100.),
-//     //         height: Val::Percent(100.),
-//     //     },
-//     //     min_size: Size {
-//     //         width: Val::Percent(100.),
-//     //         height: Val::Percent(100.),
-//     //     },
-//     //     ..Default::default()
-//     // };
-
-//     // cmds.spawn_bundle(SpriteBundle {
-//     //     sprite,
-//     //     material,
-//     //     ..Default::default()
-//     // });
-
-//     // cmds.spawn()
-//     //     .insert(node)
-//     //     .insert(style)
-//     //     .with_children(|cmds| {
-//     //         cmds.spawn_bundle(TextBundle {
-//     //             text,
-//     //             ..Default::default()
-//     //         });
-//     //     });
-//     // cmds.spawn_bundle(NodeBundle {
-//     //     style: Style {
-//     //         position_type: PositionType::Absolute,
-//     //         position: Rect {
-//     //             right: Val::Px(0.),
-//     //             top: Val::Px(0.),
-//     //             left: Val::Px(0.),
-//     //             bottom: Val::Px(0.),
-//     //             ..Default::default()
-//     //         },
-//     //         size: Size {
-//     //             width: Val::Px(WIDTH),
-//     //             height: Val::Px(HEIGHT),
-//     //         },
-//     //         max_size: Size {
-//     //             width: Val::Px(WIDTH),
-//     //             height: Val::Px(HEIGHT),
-//     //         },
-//     //         ..Default::default()
-//     //     },
-//     //     ..Default::default()
-//     // })
-//     // .with_children(|ec| {});
-// }
-
-// TODO: instead recreate shape
-// fn resize_shape(query: Query<(&mut Transform, &Node), (With<ShapeColors>, Changed<Node>)>) {
-//     query.for_each_mut(|(mut tr, size)| {
-//         dbg!(size);
-//         tr.scale.x = size.size.x / 100.;
-//         tr.scale.y = size.size.y / 100.;
-//     });
-// }
 
 fn change_camera_scale_from_resize(
     mut query: Query<&mut Transform, With<MainCamera>>,
@@ -425,18 +201,19 @@ fn change_camera_scale_from_resize(
         let wnd = windows.get_primary().unwrap();
         for mut proj in query.iter_mut() {
             log::debug!("new width {} new hright {}", wnd.width(), wnd.height());
-            proj.scale.x= WIDTH / wnd.width();
+            proj.scale.x = WIDTH / wnd.width();
             proj.scale.y = HEIGHT / wnd.height();
         }
     }
 }
 
-
 pub struct MainMenuUiPlugin;
 
 impl Plugin for MainMenuUiPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.
+        app
+        .init_resource::<PlayerItems>()
+        .
         add_system_set(
             SystemSet::
                 on_enter(GameState::MainMenu)

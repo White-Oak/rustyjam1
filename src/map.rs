@@ -8,7 +8,9 @@ use bevy::{
 use bevy_ecs_tilemap::prelude::*;
 use tiled::PropertyValue;
 
-use crate::{camera_enemy::CameraSpawn, player::PLAYER_SIZE, GameState, MainCamera};
+use crate::{
+    camera_enemy::CameraSpawn, items::PlayerItems, player::PLAYER_SIZE, GameState, MainCamera,
+};
 
 // pub struct TiledMapHandle(Handle<TiledMap>);
 
@@ -148,6 +150,10 @@ fn debug_boundaries(
     }
 }
 
+fn load_stats(mut commands: Commands, items: Res<PlayerItems>) {
+    commands.insert_resource(items.stats());
+}
+
 pub fn set_texture_filters_to_nearest(
     mut texture_events: EventReader<AssetEvent<Texture>>,
     mut textures: ResMut<Assets<Texture>>,
@@ -170,7 +176,7 @@ impl Plugin for MapPlugin {
             .init_resource::<SpawnPoint>()
             .init_resource::<Boundaries>()
             .add_system(set_texture_filters_to_nearest.system())
-            .add_system_set(SystemSet::on_enter(GameState::LoadingLevel).with_system(load.system()))
+            .add_system_set(SystemSet::on_enter(GameState::LoadingLevel).with_system(load.system()).with_system(load_stats.system()))
             .add_system_set(
                 SystemSet::on_update(GameState::LoadingLevel).with_system(load_boundaries.system()),
             )

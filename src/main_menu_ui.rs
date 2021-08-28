@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{log, prelude::*, window::WindowResized};
 use bevy_prototype_lyon::{prelude::*, shapes::SvgPathShape};
 use lyon_path::{
     builder::BorderRadii,
@@ -8,7 +8,7 @@ use lyon_path::{
     Path, Winding,
 };
 
-use crate::{GameState, HEIGHT, WIDTH};
+use crate::{GameState, HEIGHT, MainCamera, WIDTH};
 
 fn build_rectangle(width: f32, height: f32) -> Path {
     let mut builder = Builder::new();
@@ -49,96 +49,102 @@ fn setup(
     asset_server: ResMut<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    let font_handle = asset_server.load("FiraSans-Bold.ttf");
-    let mut ui_bundle = cmds.spawn_bundle(UiCameraBundle::default());
-    let cmds = ui_bundle // root node
-        .commands();
+    // let font_handle = asset_server.load("FiraSans-Bold.ttf");
 
-    let bg = build_rectangle(3000., 3000.);
-    let bg_color = get_color(1, 10, 33);
-    let bg_color = Color::rgb_u8(0, 1, 3);
-    cmds.spawn_bundle(GeometryBuilder::build_as(
-        &bg,
-        ShapeColors::new(bg_color),
-        DrawMode::Fill(FillOptions::default()),
-        Transform::from_xyz(0., 0., 0.001),
-    ))
-    .with_children(|cmds| {
-        let next_bg_color = get_color(6, 14, 43);
-        let next_bg_outline_color = get_color(0, 7, 66);
-        let next_bg_outline_options = StrokeOptions::tolerance(0.1).with_line_width(6.);
-        let main_bg_color = get_color(30, 13, 13);
-        let left = build_rounded_rectangle(1280., 900.);
-        cmds.spawn_bundle(GeometryBuilder::build_as(
-            &left,
-            ShapeColors::outlined(next_bg_color, next_bg_outline_color),
-            DrawMode::Outlined {
-                fill_options: FillOptions::default(),
-                outline_options: next_bg_outline_options,
-            },
-            Transform::from_xyz(-210., 0., 0.001),
-        ))
-        .with_children(|cmds| {
-            let levels_header = Text::with_section(
-                    "Levels".to_string(),
-                    TextStyle {
-                        font: font_handle.clone(),
-                        font_size: 60.0,
-                        color: Color::rgb_u8(255, 252, 236),
-                    },
-                    Default::default()
-                );
-            cmds.spawn_bundle(Text2dBundle {
-                text: levels_header,
-                transform: Transform::from_xyz(-470., 350., 0.001),
-                ..Default::default()
-            });
-
-            let levels = build_rounded_rectangle(1240., 700.);
-            cmds.spawn_bundle(GeometryBuilder::build_as(
-                &levels,
-                ShapeColors::new(main_bg_color),
-                DrawMode::Fill(FillOptions::default()),
-                Transform::from_xyz(0., -50., 0.001),
-            ));
-        });
-
-        let right = build_rounded_rectangle(400., 900.);
-        cmds.spawn_bundle(GeometryBuilder::build_as(
-            &right,
-            ShapeColors::outlined(next_bg_color, next_bg_outline_color),
-            DrawMode::Outlined {
-                fill_options: FillOptions::default(),
-                outline_options: next_bg_outline_options,
-            },
-            Transform::from_xyz(650., 0., 0.001),
-        ))
-        .with_children(|cmds| {
-            let items_header = Text::with_section(
-                    "Items".to_string(),
-                    TextStyle {
-                        font: font_handle.clone(),
-                        font_size: 60.0,
-                        color: Color::rgb_u8(255, 252, 236),
-                    },
-                    Default::default()
-                );
-            cmds.spawn_bundle(Text2dBundle {
-                text: items_header,
-                transform: Transform::from_xyz(-45., 350., 0.001),
-                ..Default::default()
-            });
-
-            let levels = build_rounded_rectangle(360., 700.);
-            cmds.spawn_bundle(GeometryBuilder::build_as(
-                &levels,
-                ShapeColors::new(main_bg_color),
-                DrawMode::Fill(FillOptions::default()),
-                Transform::from_xyz(0., -50., 0.001),
-            ));
-        });
+    let sprite = Sprite::new(Vec2::new(WIDTH, HEIGHT));
+    let main_menu = materials.add(ColorMaterial::texture(asset_server.load("001.png")));
+    cmds.spawn_bundle(SpriteBundle{
+        sprite,
+        material: main_menu,
+..Default::default()
     });
 }
+
+//     let bg = build_rectangle(3000., 3000.);
+//     let bg_color = get_color(1, 10, 33);
+//     let bg_color = Color::rgb_u8(0, 1, 3);
+//     cmds.spawn_bundle(GeometryBuilder::build_as(
+//         &bg,
+//         ShapeColors::new(bg_color),
+//         DrawMode::Fill(FillOptions::default()),
+//         Transform::from_xyz(0., 0., 0.001),
+//     ))
+//     .with_children(|cmds| {
+//         let next_bg_color = get_color(6, 14, 43);
+//         let next_bg_outline_color = get_color(0, 7, 66);
+//         let next_bg_outline_options = StrokeOptions::tolerance(0.1).with_line_width(6.);
+//         let main_bg_color = get_color(30, 13, 13);
+//         let left = build_rounded_rectangle(1280., 900.);
+//         cmds.spawn_bundle(GeometryBuilder::build_as(
+//             &left,
+//             ShapeColors::outlined(next_bg_color, next_bg_outline_color),
+//             DrawMode::Outlined {
+//                 fill_options: FillOptions::default(),
+//                 outline_options: next_bg_outline_options,
+//             },
+//             Transform::from_xyz(-210., 0., 0.001),
+//         ))
+//         .with_children(|cmds| {
+//             let levels_header = Text::with_section(
+//                     "Levels".to_string(),
+//                     TextStyle {
+//                         font: font_handle.clone(),
+//                         font_size: 60.0,
+//                         color: Color::rgb_u8(255, 252, 236),
+//                     },
+//                     Default::default()
+//                 );
+//             cmds.spawn_bundle(Text2dBundle {
+//                 text: levels_header,
+//                 transform: Transform::from_xyz(-470., 350., 0.001),
+//                 ..Default::default()
+//             });
+
+//             let levels = build_rounded_rectangle(1240., 700.);
+//             cmds.spawn_bundle(GeometryBuilder::build_as(
+//                 &levels,
+//                 ShapeColors::new(main_bg_color),
+//                 DrawMode::Fill(FillOptions::default()),
+//                 Transform::from_xyz(0., -50., 0.001),
+//             ));
+//         });
+
+//         let right = build_rounded_rectangle(400., 900.);
+//         cmds.spawn_bundle(GeometryBuilder::build_as(
+//             &right,
+//             ShapeColors::outlined(next_bg_color, next_bg_outline_color),
+//             DrawMode::Outlined {
+//                 fill_options: FillOptions::default(),
+//                 outline_options: next_bg_outline_options,
+//             },
+//             Transform::from_xyz(650., 0., 0.001),
+//         ))
+//         .with_children(|cmds| {
+//             let items_header = Text::with_section(
+//                     "Items".to_string(),
+//                     TextStyle {
+//                         font: font_handle.clone(),
+//                         font_size: 60.0,
+//                         color: Color::rgb_u8(255, 252, 236),
+//                     },
+//                     Default::default()
+//                 );
+//             cmds.spawn_bundle(Text2dBundle {
+//                 text: items_header,
+//                 transform: Transform::from_xyz(-45., 350., 0.001),
+//                 ..Default::default()
+//             });
+
+//             let levels = build_rounded_rectangle(360., 700.);
+//             cmds.spawn_bundle(GeometryBuilder::build_as(
+//                 &levels,
+//                 ShapeColors::new(main_bg_color),
+//                 DrawMode::Fill(FillOptions::default()),
+//                 Transform::from_xyz(0., -50., 0.001),
+//             ));
+//         });
+//     });
+// }
 
 // fn setup(
 //     mut commands: Commands,
@@ -402,13 +408,29 @@ fn setup(
 // }
 
 // TODO: instead recreate shape
-fn resize_shape(query: Query<(&mut Transform, &Node), (With<ShapeColors>, Changed<Node>)>) {
-    query.for_each_mut(|(mut tr, size)| {
-        dbg!(size);
-        tr.scale.x = size.size.x / 100.;
-        tr.scale.y = size.size.y / 100.;
-    });
+// fn resize_shape(query: Query<(&mut Transform, &Node), (With<ShapeColors>, Changed<Node>)>) {
+//     query.for_each_mut(|(mut tr, size)| {
+//         dbg!(size);
+//         tr.scale.x = size.size.x / 100.;
+//         tr.scale.y = size.size.y / 100.;
+//     });
+// }
+
+fn change_camera_scale_from_resize(
+    mut query: Query<&mut Transform, With<MainCamera>>,
+    mut events: EventReader<WindowResized>,
+    windows: Res<Windows>,
+) {
+    for _ in events.iter() {
+        let wnd = windows.get_primary().unwrap();
+        for mut proj in query.iter_mut() {
+            log::debug!("new width {} new hright {}", wnd.width(), wnd.height());
+            proj.scale.x= WIDTH / wnd.width();
+            proj.scale.y = HEIGHT / wnd.height();
+        }
+    }
 }
+
 
 pub struct MainMenuUiPlugin;
 
@@ -423,7 +445,7 @@ impl Plugin for MainMenuUiPlugin {
         .add_system_set(
             SystemSet::
                 on_update(GameState::MainMenu)
-                .with_system(resize_shape.system()),
+                .with_system(change_camera_scale_from_resize.system()),
         )
         // .add_system_set(
         //     SystemSet::new()

@@ -49,11 +49,18 @@ impl ModKind {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum Slot {
     Head,
     Cloak,
     Lockpick,
     Boots,
+}
+
+impl Default for Slot {
+    fn default() -> Self {
+        Slot::Head
+    }
 }
 
 pub struct SlotItems {

@@ -10,46 +10,19 @@ use lyon_path::{
 };
 
 use crate::{
-    items::{Item, PlayerItems},
+    button::{register_my_button, ClickedButtonEvent, MyButton, MyButtonBundle},
+    items::{Item, PlayerItems, Slot},
     GameState, MainCamera, HEIGHT, WIDTH,
 };
 
-fn build_rectangle(width: f32, height: f32) -> Path {
-    let mut builder = Builder::new();
-    builder.add_rectangle(
-        &euclid::Rect::new(
-            Point2D::new(-width / 2., -height / 2.),
-            Size2D::new(width, height),
-        ),
-        Winding::Positive,
-    );
-    builder.build()
-}
+#[derive(Debug, Clone, Copy, Default)]
+struct ClickedStats;
 
-fn build_rounded_rectangle(width: f32, height: f32) -> Path {
-    let mut builder = Builder::new();
-    builder.add_rounded_rectangle(
-        // &euclid::Rect::new(Point2D::new(-50., -50.), Size2D::new(100., 100.)),
-        &euclid::Rect::new(
-            Point2D::new(-width / 2., -height / 2.),
-            Size2D::new(width, height),
-        ),
-        &BorderRadii::new(7.),
-        Winding::Positive,
-    );
-    builder.build()
-}
-
-fn get_color(r: u8, g: u8, b: u8) -> Color {
-    Color::rgb(
-        r as f32 / (255. * 8.),
-        g as f32 / (255. * 8.),
-        b as f32 / (255. * 8.),
-    )
-}
+#[derive(Debug, Clone, Copy, Default)]
+struct ClickedSlot(Slot);
 
 fn light_text_color() -> Color {
-Color::rgb_u8(255, 252, 236)
+    Color::rgb_u8(255, 252, 236)
 }
 
 fn draw_slot(
@@ -60,53 +33,63 @@ fn draw_slot(
 ) {
     let font_handle = asset_server.load("Roboto-Regular.ttf");
     let y = match item.slot {
-        crate::items::Slot::Head => 200.,
-        crate::items::Slot::Cloak => 35.,
-        crate::items::Slot::Lockpick => -135.,
-        crate::items::Slot::Boots => -301.,
+        crate::items::Slot::Head => 220.,
+        crate::items::Slot::Cloak => 55.,
+        crate::items::Slot::Lockpick => -115.,
+        crate::items::Slot::Boots => -281.,
     };
-    let x = 95.;
+    let x = 51.;
     let color = light_text_color();
-    let name = Text::with_section(
-        item.name.clone(),
-        TextStyle {
-            font: font_handle.clone(),
-            font_size: 21.,
-            color
+    cmds.spawn_bundle(MyButtonBundle {
+        button: MyButton {
+            size: Vec2::new(344., 156.),
+            id: ClickedSlot(item.slot),
         },
-        TextAlignment {
-            vertical: VerticalAlign::Center,
-            horizontal: HorizontalAlign::Center
-        },
-    );
-    cmds.spawn_bundle(Text2dBundle {
-        text: name,
-        transform: Transform::from_xyz(x, y + 70., 0.001),
+        transform: Transform::from_xyz(44., y, 0.001),
         ..Default::default()
-    });
+    })
+    .with_children(|cmds| {
+        let name = Text::with_section(
+            item.name.clone(),
+            TextStyle {
+                font: font_handle.clone(),
+                font_size: 21.,
+                color,
+            },
+            TextAlignment {
+                vertical: VerticalAlign::Center,
+                horizontal: HorizontalAlign::Center,
+            },
+        );
+        cmds.spawn_bundle(Text2dBundle {
+            text: name,
+            transform: Transform::from_xyz(x, 55., 0.001),
+            ..Default::default()
+        });
 
-    let text = item
-        .mods
-        .iter()
-        .map(|item_mod| item_mod.to_string())
-        .collect_vec()
-        .join("\n");
-    let item_mods = Text::with_section(
-        text,
-        TextStyle {
-            font: font_handle,
-            font_size: 15.0,
-            color
-        },
-        TextAlignment {
-            vertical: VerticalAlign::Center,
-            horizontal: HorizontalAlign::Center
-        },
-    );
-    cmds.spawn_bundle(Text2dBundle {
-        text: item_mods,
-        transform: Transform::from_xyz(x, y, 0.001),
-        ..Default::default()
+        let text = item
+            .mods
+            .iter()
+            .map(|item_mod| item_mod.to_string())
+            .collect_vec()
+            .join("\n");
+        let item_mods = Text::with_section(
+            text,
+            TextStyle {
+                font: font_handle,
+                font_size: 15.0,
+                color,
+            },
+            TextAlignment {
+                vertical: VerticalAlign::Center,
+                horizontal: HorizontalAlign::Center,
+            },
+        );
+        cmds.spawn_bundle(Text2dBundle {
+            text: item_mods,
+            transform: Transform::from_xyz(x, -20., 0.001),
+            ..Default::default()
+        });
     });
 }
 
@@ -155,7 +138,7 @@ fn setup(
                 TextStyle {
                     font: font_handle.clone(),
                     font_size: 60.0,
-                    color: Color::rgb_u8(255, 252, 236),
+                    color: light_text_color(),
                 },
                 Default::default(),
             );
@@ -163,6 +146,34 @@ fn setup(
                 text: items_header,
                 transform: Transform::from_xyz(0., 340., 0.001),
                 ..Default::default()
+            });
+
+            let inventory = Text::with_section(
+                "Stats".to_string(),
+                TextStyle {
+                    font: font_handle.clone(),
+                    font_size: 20.0,
+                    color: light_text_color(),
+                },
+                TextAlignment {
+                    vertical: VerticalAlign::Center,
+                    horizontal: HorizontalAlign::Center,
+                },
+            );
+            cmds.spawn_bundle(Text2dBundle {
+                text: inventory,
+                transform: Transform::from_xyz(160., 365., 0.001),
+                ..Default::default()
+            })
+            .with_children(|cmds| {
+                cmds.spawn_bundle(MyButtonBundle {
+                    button: MyButton {
+                        size: Vec2::new(140., 30.),
+                        id: ClickedStats,
+                    },
+                    transform: Transform::from_xyz(0., 0., 0.0001),
+                    ..Default::default()
+                });
             });
 
             draw_slot(
@@ -190,6 +201,24 @@ fn setup(
                 &mut materials,
             );
         });
+}
+
+fn clicked_stats(
+    mut commands: Commands,
+    mut event_reader: EventReader<ClickedButtonEvent<ClickedStats>>,
+) {
+    for _ in event_reader.iter() {
+        // TODO: transition to stats
+    }
+}
+
+fn clicked_slot(
+    mut commands: Commands,
+    mut event_reader: EventReader<ClickedButtonEvent<ClickedSlot>>,
+) {
+    for _ in event_reader.iter() {
+        // TODO: transition to slot inv
+    }
 }
 
 fn change_camera_scale_from_resize(
@@ -230,5 +259,7 @@ impl Plugin for MainMenuUiPlugin {
         //         .with_system(fps_change_text.system()),
         // )
         ;
+        register_my_button::<ClickedStats>(app);
+        register_my_button::<ClickedSlot>(app);
     }
 }

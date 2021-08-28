@@ -8,11 +8,13 @@ mod smoke_bomb;
 mod ui;
 mod main_menu_ui;
 mod items;
+mod button;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 use bevy_inspector_egui::{InspectorPlugin, WorldInspectorPlugin, widgets::InspectorQuery};
 use bevy_prototype_lyon::plugin::ShapePlugin;
+use button::MyButtonPlugin;
 use camera_enemy::EnemyCameraPlugin;
 use light_radius::LightRadiusPlugin;
 use main_menu_ui::MainMenuUiPlugin;
@@ -60,6 +62,7 @@ fn main() {
         .add_plugin(LightRadiusPlugin)
         .add_plugin(MainMenuUiPlugin)
         .add_plugin(ShapePlugin)
+        .add_plugin(MyButtonPlugin)
         .add_startup_system(setup.system())
         .run();
 }

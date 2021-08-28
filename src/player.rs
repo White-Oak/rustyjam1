@@ -318,6 +318,12 @@ impl FromWorld for MainTexture {
     }
 }
 
+fn back_to_menu(mut state: ResMut<State<GameState>>) {
+    state
+        .set(GameState::MainMenu)
+        .expect("cant move back from reward screen");
+}
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
@@ -333,6 +339,7 @@ impl Plugin for PlayerPlugin {
         .init_resource::<Option<Casting>>()
         .init_resource::<MainTexture>()
         .add_event::<CastingCommand>()
+        .add_system_set(SystemSet::on_resume(GameState::Level).with_system(back_to_menu.system()))
         .add_system_set(
             SystemSet::on_update(GameState::Level)
                 .with_system(move_keyboard.system().label("control"))

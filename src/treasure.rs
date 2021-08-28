@@ -1,8 +1,19 @@
 use std::f32::consts::PI;
 
-use bevy::{prelude::*, render::{pipeline::{PipelineDescriptor, RenderPipeline}, shader::{ShaderStage, ShaderStages}}};
+use bevy::{
+    prelude::*,
+    render::{
+        pipeline::{PipelineDescriptor, RenderPipeline},
+        shader::{ShaderStage, ShaderStages},
+    },
+    sprite::collide_aabb,
+};
 
-use crate::{GameState, perlin::TimeComponent, player::LevelMarker};
+use crate::{
+    perlin::TimeComponent,
+    player::{LevelMarker, Player},
+    GameState,
+};
 
 pub struct TreasureSpawn;
 
@@ -34,7 +45,8 @@ fn spawn_treasure(
         mesh.set_attribute("Vertex_Color", v_color);
         let indices = vec![0, 1, 2, 0, 2, 3, 0, 3, 1];
         mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices)));
-        commands.entity(entity)
+        commands
+            .entity(entity)
             .insert_bundle(MeshBundle {
                 mesh: meshes.add(mesh),
                 render_pipelines: RenderPipelines::from_pipelines(vec![RenderPipeline::new(
@@ -44,10 +56,27 @@ fn spawn_treasure(
                 ..Default::default()
             })
             .insert(TimeComponent::default())
-            .insert(LevelMarker)
-            ;
-
+            .insert(LevelMarker);
     });
+}
+
+fn treasure_collide(
+    player: Query<&Transform, With<Player>>,
+    treasures: Query<&Transform, With<TreasureSpawn>>,
+
+    mut state: ResMut<State<GameState>>,
+) {
+    let tr = player.single().expect("single player").translation;
+    treasures.for_each(|tr_tr| {
+        if collide_aabb::collide(tr, Vec2::splat(100.), tr_tr.translation, Vec2::splat(100.))
+            .is_some()
+        {
+            state
+                .push(GameState::ChoosingTreasure)
+                .expect("cant move to treasure choosing");
+            return;
+        }
+    })
 }
 
 struct TreasurePipeline(Handle<PipelineDescriptor>);
@@ -80,7 +109,9 @@ pub struct TreasurePlugin;
 impl Plugin for TreasurePlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<TreasurePipeline>().add_system_set(
-            SystemSet::on_update(GameState::Level).with_system(spawn_treasure.system()),
+            SystemSet::on_update(GameState::Level)
+                .with_system(spawn_treasure.system())
+                .with_system(treasure_collide.system()),
         );
     }
 }

@@ -95,7 +95,11 @@ fn setup(
     mut cmds: Commands,
     asset_server: ResMut<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut camera: Query<&mut Transform, With<MainCamera>>
 ) {
+    let mut cam = camera.single_mut().unwrap();
+    cam.translation = Vec3::new(0., 0., 999.);
+    cam.scale = Vec3::splat(1.);
     let font_handle = asset_server.load("FiraSans-Bold.ttf");
 
     let sprite = Sprite::new(Vec2::new(WIDTH, HEIGHT));

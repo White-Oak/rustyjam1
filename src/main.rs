@@ -13,10 +13,11 @@ mod cleanup;
 mod stats_screen;
 mod inventory;
 mod treasure;
+mod reward;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
-use bevy_inspector_egui::{InspectorPlugin, WorldInspectorPlugin, widgets::InspectorQuery};
+// use bevy_inspector_egui::{InspectorPlugin, WorldInspectorPlugin, widgets::InspectorQuery};
 use button::MyButtonPlugin;
 use camera_enemy::EnemyCameraPlugin;
 use inventory::InventoryScreenPlugin;
@@ -24,6 +25,7 @@ use light_radius::LightRadiusPlugin;
 use main_menu_ui::MainMenuUiPlugin;
 use map::MapPlugin;
 use perlin::{PerlinPlugin};
+use reward::RewardPlugin;
 use smoke_bomb::{SmokeBombPlugin};
 use stats_screen::StatsScreenPlugin;
 use treasure::TreasurePlugin;
@@ -38,6 +40,7 @@ pub enum GameState {
     InventoryScreen,
     LoadingLevel,
     Level,
+    ChoosingTreasure
 }
 
 pub const WIDTH: f32 = 1920. * 0.9;
@@ -71,6 +74,7 @@ fn main() {
         .add_plugin(StatsScreenPlugin)
         .add_plugin(InventoryScreenPlugin)
         .add_plugin(TreasurePlugin)
+        .add_plugin(RewardPlugin)
         .add_startup_system(setup.system())
         .init_resource::<RobotoFont>()
         .run();

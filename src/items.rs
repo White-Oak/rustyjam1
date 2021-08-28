@@ -1,10 +1,12 @@
 use std::{
     fmt::Display,
     iter::{once, repeat},
+    ops::Range,
 };
 
 use bevy::{log, prelude::*};
 use itertools::Itertools;
+use rand::{prelude::SliceRandom, thread_rng, Rng};
 
 #[derive(Debug, Default)]
 pub struct PlayerStatsMods {
@@ -59,6 +61,16 @@ impl ModKind {
             ModKind::CooldownReduction => "increased cooldown reduction",
         }
     }
+
+    fn range(&self) -> Range<f32> {
+        match self {
+            ModKind::LightRadius => 0.1..0.33,
+            ModKind::AreaOfEffect => 0.1..0.33,
+            ModKind::Duration => 0.1..0.2,
+            ModKind::MovementSpeed => 0.05..0.2,
+            ModKind::CooldownReduction => 0.1..0.3,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -67,6 +79,35 @@ pub enum Slot {
     Cloak,
     Lockpick,
     Boots,
+}
+
+impl Slot {
+    fn common_name(&self) -> String {
+        match self {
+            Slot::Head => "Mask".to_string(),
+            Slot::Cloak => "Cloak".to_string(),
+            Slot::Lockpick => "Lockpick".to_string(),
+            Slot::Boots => "Boots".to_string(),
+        }
+    }
+
+    fn magic_name(&self) -> String {
+        match self {
+            Slot::Head => "Magic Mask".to_string(),
+            Slot::Cloak => "Magic Cloak".to_string(),
+            Slot::Lockpick => "Magic Lockpick".to_string(),
+            Slot::Boots => "Magic Boots".to_string(),
+        }
+    }
+
+    fn rare_name(&self) -> String {
+        match self {
+            Slot::Head => "Great Mask".to_string(),
+            Slot::Cloak => "Great Cloak".to_string(),
+            Slot::Lockpick => "Great Lockpick".to_string(),
+            Slot::Boots => "Great Boots".to_string(),
+        }
+    }
 }
 
 impl Default for Slot {
@@ -173,8 +214,56 @@ impl PlayerItems {
     }
 
     pub fn equip_on_slot(&mut self, slot: Slot, index: usize) {
-        self.slot_items_mut(slot).equipped =  index;
+        self.slot_items_mut(slot).equipped = index;
     }
+}
+
+const RARE_CHANCE: f32 = 0.9;
+const MAGIC_CHANCE: f32 = 0.6;
+
+const KINDS: [ModKind; 5] = [
+    ModKind::MovementSpeed,
+    ModKind::LightRadius,
+    ModKind::Duration,
+    ModKind::CooldownReduction,
+    ModKind::AreaOfEffect,
+];
+
+const SLOTS: [Slot; 4] = [Slot::Head, Slot::Cloak, Slot::Lockpick, Slot::Boots];
+
+pub fn generate() -> Vec<Item> {
+    let mut items = vec![];
+    let mut rng = thread_rng();
+    for _ in 0..3 {
+        let mut kinds = 1;
+        let r: f32 = rng.gen();
+        if r > RARE_CHANCE {
+            kinds += 2;
+        }
+        if r > MAGIC_CHANCE {
+            kinds += 1;
+        }
+        let slot = *SLOTS
+            .choose_multiple(&mut rng, 1)
+            .next()
+            .expect("no slots generated");
+        let name = match kinds {
+            1 => slot.common_name(),
+            2 => slot.magic_name(),
+            4 => slot.rare_name(),
+            _ => todo!(),
+        };
+        let mods = KINDS
+            .choose_multiple(&mut rng, kinds)
+            .map(|kind| Mod {
+                value: rng.gen_range(kind.range()),
+                kind: *kind,
+            })
+            .collect_vec();
+        let item = Item { name, slot, mods };
+        items.push(item);
+    }
+    items
 }
 
 impl Default for PlayerItems {
@@ -190,24 +279,10 @@ impl Default for PlayerItems {
         let head = Item {
             name: "Mask".to_string(),
             slot: Slot::Head,
-            mods: vec![
-                Mod {
-                    kind: ModKind::LightRadius,
-                    value: 0.33,
-                },
-                Mod {
-                    kind: ModKind::AreaOfEffect,
-                    value: 0.5,
-                },
-                Mod {
-                    kind: ModKind::Duration,
-                    value: 0.5,
-                },
-                Mod {
-                    kind: ModKind::MovementSpeed,
-                    value: 0.5,
-                },
-            ],
+            mods: vec![Mod {
+                kind: ModKind::LightRadius,
+                value: 0.33,
+            }],
         };
         let cloak = Item {
             name: "Cloak".to_string(),
@@ -236,7 +311,7 @@ impl Default for PlayerItems {
         let head = SlotItems {
             slot: Slot::Head,
             equipped: 0,
-            available: once(bad_head).chain(repeat(head).take(17)).collect_vec(),
+            available: once(bad_head).chain(once(head)).collect_vec(),
         };
         let cloak = SlotItems {
             slot: Slot::Cloak,

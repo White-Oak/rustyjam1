@@ -4,7 +4,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::MainCamera;
+use crate::{GameState, MainCamera};
 
 #[derive(Debug, Default)]
 pub struct MyButton<T: Default + Clone> {
@@ -73,7 +73,7 @@ fn select_button<T: Default + Clone + Send + Sync + 'static>(
             }
         }
         if highlights.get(*high_entity).is_ok() {
-        log::debug!("deselected a button");
+            log::debug!("deselected a button");
             commands.entity(*high_entity).despawn_recursive();
             let _ = selected.take();
         }
@@ -94,22 +94,30 @@ fn select_button<T: Default + Clone + Send + Sync + 'static>(
 }
 
 fn check_for_clicks<T: Default + Clone + Send + Sync + 'static>(
-    mouse: Res<Input<MouseButton>>,
-    selected: Res<Option<SelectedButton<T>>>,
+    mut commands: Commands,
+    mut mouse: ResMut<Input<MouseButton>>,
+    mut selected: ResMut<Option<SelectedButton<T>>>,
     mut events: EventWriter<ClickedButtonEvent<T>>,
 ) {
     if mouse.just_pressed(MouseButton::Left) {
-        if let Some(SelectedButton(_, _, id)) = selected.as_ref() {
-            events.send(ClickedButtonEvent(id.clone()))
+        if let Some(SelectedButton(_, entity, id)) = selected.take() {
+            events.send(ClickedButtonEvent(id));
+            mouse.reset(MouseButton::Left);
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
 
-pub fn register_my_button<T: Default + Clone + Send + Sync + 'static>(world: &mut AppBuilder) {
-    world
-        .init_resource::<Option<SelectedButton<T>>>()
-        .add_system(select_button::<T>.system())
-        .add_system(check_for_clicks::<T>.system())
+pub fn register_my_button<T: Default + Clone + Send + Sync + 'static>(
+    app: &mut AppBuilder,
+    on_state: GameState,
+) {
+    app.init_resource::<Option<SelectedButton<T>>>()
+        .add_system_set(
+            SystemSet::on_update(on_state)
+                .with_system(select_button::<T>.system().label("button_selector"))
+                .with_system(check_for_clicks::<T>.system().label("button_click").after("button_selector")),
+        )
         .add_event::<SelectedButtonEvent<T>>()
         .add_event::<ClickedButtonEvent<T>>();
 }

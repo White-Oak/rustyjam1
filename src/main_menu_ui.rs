@@ -21,7 +21,7 @@ struct ClickedStats;
 #[derive(Debug, Clone, Copy, Default)]
 struct ClickedSlot(Slot);
 
-fn light_text_color() -> Color {
+pub fn light_text_color() -> Color {
     Color::rgb_u8(255, 252, 236)
 }
 
@@ -168,10 +168,10 @@ fn setup(
             .with_children(|cmds| {
                 cmds.spawn_bundle(MyButtonBundle {
                     button: MyButton {
-                        size: Vec2::new(140., 30.),
+                        size: Vec2::new(80., 30.),
                         id: ClickedStats,
                     },
-                    transform: Transform::from_xyz(0., 0., 0.0001),
+                    transform: Transform::from_xyz(10., 0., 0.0001),
                     ..Default::default()
                 });
             });
@@ -204,24 +204,28 @@ fn setup(
 }
 
 fn clicked_stats(
-    mut commands: Commands,
     mut event_reader: EventReader<ClickedButtonEvent<ClickedStats>>,
+    mut state: ResMut<State<GameState>>,
 ) {
-    for _ in event_reader.iter() {
-        // TODO: transition to stats
+    if event_reader.iter().next().is_some() {
+        log::debug!("moving to stats screen");
+        state
+            .push(GameState::StatsScreen)
+            .expect("cant move to stats screen");
     }
 }
 
 fn clicked_slot(
-    mut commands: Commands,
     mut event_reader: EventReader<ClickedButtonEvent<ClickedSlot>>,
+    mut state: ResMut<State<GameState>>,
 ) {
     for _ in event_reader.iter() {
+        log::debug!("moving to inventory screen");
         // TODO: transition to slot inv
     }
 }
 
-fn change_camera_scale_from_resize(
+pub fn change_camera_scale_from_resize(
     mut query: Query<&mut Transform, With<MainCamera>>,
     mut events: EventReader<WindowResized>,
     windows: Res<Windows>,
@@ -251,6 +255,8 @@ impl Plugin for MainMenuUiPlugin {
         .add_system_set(
             SystemSet::
                 on_update(GameState::MainMenu)
+                .with_system(clicked_slot.system())
+                .with_system(clicked_stats.system().after("button_click"))
                 .with_system(change_camera_scale_from_resize.system()),
         )
         // .add_system_set(
@@ -259,7 +265,7 @@ impl Plugin for MainMenuUiPlugin {
         //         .with_system(fps_change_text.system()),
         // )
         ;
-        register_my_button::<ClickedStats>(app);
-        register_my_button::<ClickedSlot>(app);
+        register_my_button::<ClickedStats>(app, GameState::MainMenu);
+        register_my_button::<ClickedSlot>(app, GameState::MainMenu);
     }
 }

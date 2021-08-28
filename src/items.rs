@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use bevy::prelude::*;
+use itertools::Itertools;
 
 #[derive(Debug, Default)]
 pub struct PlayerStatsMods {
@@ -17,6 +18,7 @@ pub struct Item {
     pub mods: Vec<Mod>,
 }
 
+#[derive(Debug, Clone, Default)]
 pub struct Mod {
     pub kind: ModKind,
     pub value: f32,
@@ -28,13 +30,19 @@ impl Display for Mod {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ModKind {
     LightRadius,
     AreaOfEffect,
     Duration,
     MovementSpeed,
     CooldownReduction,
+}
+
+impl Default for ModKind {
+    fn default() -> Self {
+        ModKind::AreaOfEffect
+    }
 }
 
 impl ModKind {
@@ -99,6 +107,30 @@ impl PlayerItems {
         }
         stats
     }
+
+    pub fn all_equipped_items(&self) -> impl Iterator<Item = &Item> {
+        vec![
+            self.head.equipped(),
+            self.cloak.equipped(),
+            self.lockpick.equipped(),
+            self.boots.equipped(),
+        ]
+        .into_iter()
+    }
+
+    pub fn all_equipped_mods(&self) -> impl Iterator<Item = Mod> + '_ {
+        let grouped = self
+            .all_equipped_items()
+            .flat_map(|item| item.mods.clone())
+            .into_grouping_map_by(|a_mod| a_mod.kind);
+        grouped.
+            fold(Mod::default(), |mut acc, kind, next| {
+            // fold_first(|mut acc, _, next| {
+                acc.kind = *kind;
+                acc.value += next.value;
+                acc
+            }).into_values()
+    }
 }
 
 impl Default for PlayerItems {
@@ -106,22 +138,23 @@ impl Default for PlayerItems {
         let head = Item {
             name: "Mask".to_string(),
             slot: Slot::Head,
-            mods: vec![Mod {
-                kind: ModKind::LightRadius,
-                value: 0.33,
-            }
-            , Mod {
-                kind: ModKind::AreaOfEffect,
-                value: 0.5
-            }
-            , Mod {
-                kind: ModKind::Duration,
-                value: 0.5
-            }
-            , Mod {
-                kind: ModKind::MovementSpeed,
-                value: 0.5
-            }
+            mods: vec![
+                Mod {
+                    kind: ModKind::LightRadius,
+                    value: 0.33,
+                },
+                Mod {
+                    kind: ModKind::AreaOfEffect,
+                    value: 0.5,
+                },
+                Mod {
+                    kind: ModKind::Duration,
+                    value: 0.5,
+                },
+                Mod {
+                    kind: ModKind::MovementSpeed,
+                    value: 0.5,
+                },
             ],
         };
         let cloak = Item {

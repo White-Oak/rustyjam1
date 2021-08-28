@@ -79,7 +79,7 @@ n+= first_octave / 8.  * classicPerlinNoise(-xy * 8. - vec2(time * 2.8));
 n+= first_octave / 16. * classicPerlinNoise(xy * 16. - vec2(time * 4.0));
 n+= first_octave / 32. * classicPerlinNoise(-xy * 32. - vec2(time * 8.0));
 
-    vec4 result = vec4(base_color, uv + n);
+    vec4 result = vec4(base_color, clamp(uv + n, 0., 1.));
 
     o_Target = result;
 }

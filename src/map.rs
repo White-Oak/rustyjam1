@@ -175,7 +175,7 @@ impl Plugin for MapPlugin {
         app.init_resource::<CurrentLevelHandle>()
             .init_resource::<SpawnPoint>()
             .init_resource::<Boundaries>()
-            .add_system(set_texture_filters_to_nearest.system())
+            // .add_system(set_texture_filters_to_nearest.system())
             .add_system_set(SystemSet::on_enter(GameState::LoadingLevel).with_system(load.system()).with_system(load_stats.system()))
             .add_system_set(
                 SystemSet::on_update(GameState::LoadingLevel).with_system(load_boundaries.system()),

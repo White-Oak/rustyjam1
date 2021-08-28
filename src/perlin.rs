@@ -13,7 +13,6 @@ use bevy::{
         shader::{ShaderStage, ShaderStages},
     },
 };
-use bevy_inspector_egui::Inspectable;
 
 const VERTEX_SHADER2: &str = r"
 #version 450
@@ -40,14 +39,12 @@ pub struct PerlinPipelineHandle(Handle<PipelineDescriptor>);
 
 #[derive(RenderResources, Default, TypeUuid)]
 #[uuid = "af8c8bb6-bab2-48e9-9251-6b757d28afda"]
-#[derive(Inspectable)]
 pub struct TimeComponent {
     value: f32,
 }
 
 #[derive(RenderResources, Default, TypeUuid)]
 #[uuid = "10731270-61b9-4d43-b6de-6686fe2f88c5"]
-#[derive(Inspectable)]
 pub struct NoiseColorComponent {
     pub value: Vec3,
 }
@@ -55,7 +52,6 @@ pub struct NoiseColorComponent {
 #[derive(RenderResources, Default, TypeUuid)]
 #[render_resources(from_self)]
 #[uuid = "4218782a-4931-4983-8188-121dc3cf3be1"]
-#[derive(Inspectable)]
 #[repr(C)]
 pub struct PerlinComponent {
     pub resolution: f32,

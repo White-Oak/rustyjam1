@@ -13,7 +13,6 @@ use crate::{
 struct StatsScreenMarker;
 
 #[derive(Debug, Clone, Copy, Default)]
-
 struct ClickedBack;
 
 struct UiTexture(Handle<ColorMaterial>);

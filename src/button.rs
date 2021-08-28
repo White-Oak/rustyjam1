@@ -22,8 +22,8 @@ pub struct MyButtonBundle<T: Default + Clone + Send + Sync + 'static> {
 // selected, spawned to highlight selected
 pub struct SelectedButton<T>(Entity, Entity, T);
 
-pub struct SelectedButtonEvent<T>(T);
-pub struct ClickedButtonEvent<T>(T);
+pub struct SelectedButtonEvent<T>(pub T);
+pub struct ClickedButtonEvent<T>(pub T);
 
 struct SelectedButtonColor(Handle<ColorMaterial>);
 

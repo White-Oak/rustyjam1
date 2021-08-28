@@ -11,8 +11,10 @@ use lyon_path::{
 
 use crate::{
     button::{register_my_button, ClickedButtonEvent, MyButton, MyButtonBundle},
+    cleanup::cleanup_system,
+    inventory::ViewInvSlot,
     items::{Item, PlayerItems, Slot},
-    GameState, MainCamera, HEIGHT, WIDTH,
+    GameState, MainCamera, RobotoFont, HEIGHT, WIDTH,
 };
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -21,17 +23,18 @@ struct ClickedStats;
 #[derive(Debug, Clone, Copy, Default)]
 struct ClickedSlot(Slot);
 
+#[derive(Debug, Clone, Copy, Default)]
+struct ClickedLevel(u32);
+
+struct MainMenuMarker;
+
+struct CurrentItemsView(Entity);
+
 pub fn light_text_color() -> Color {
     Color::rgb_u8(255, 252, 236)
 }
 
-fn draw_slot(
-    cmds: &mut ChildBuilder,
-    item: &Item,
-    asset_server: &AssetServer,
-    materials: &mut Assets<ColorMaterial>,
-) {
-    let font_handle = asset_server.load("Roboto-Regular.ttf");
+fn draw_slot(cmds: &mut ChildBuilder, item: &Item, font_handle: &RobotoFont) {
     let y = match item.slot {
         crate::items::Slot::Head => 220.,
         crate::items::Slot::Cloak => 55.,
@@ -52,7 +55,7 @@ fn draw_slot(
         let name = Text::with_section(
             item.name.clone(),
             TextStyle {
-                font: font_handle.clone(),
+                font: font_handle.0.clone(),
                 font_size: 21.,
                 color,
             },
@@ -76,7 +79,7 @@ fn draw_slot(
         let item_mods = Text::with_section(
             text,
             TextStyle {
-                font: font_handle,
+                font: font_handle.0.clone(),
                 font_size: 15.0,
                 color,
             },
@@ -110,6 +113,7 @@ fn setup(
     });
 
     cmds.spawn()
+        .insert(MainMenuMarker)
         .insert(Transform::from_xyz(-615., 0., 0.001))
         .insert(GlobalTransform::default())
         .with_children(|cmds| {
@@ -130,9 +134,10 @@ fn setup(
         });
 
     cmds.spawn()
+        .insert(MainMenuMarker)
         .insert(Transform::from_xyz(530., 0., 0.001))
         .insert(GlobalTransform::default())
-        .with_children(|mut cmds| {
+        .with_children(|cmds| {
             let items_header = Text::with_section(
                 "Items".to_string(),
                 TextStyle {
@@ -175,32 +180,35 @@ fn setup(
                     ..Default::default()
                 });
             });
-
-            draw_slot(
-                &mut cmds,
-                items.head.equipped(),
-                &asset_server,
-                &mut materials,
-            );
-            draw_slot(
-                &mut cmds,
-                items.cloak.equipped(),
-                &asset_server,
-                &mut materials,
-            );
-            draw_slot(
-                &mut cmds,
-                items.lockpick.equipped(),
-                &asset_server,
-                &mut materials,
-            );
-            draw_slot(
-                &mut cmds,
-                items.boots.equipped(),
-                &asset_server,
-                &mut materials,
-            );
         });
+}
+
+fn dispatch_items(
+    mut commands: Commands,
+    mut cur_view: ResMut<Option<CurrentItemsView>>,
+    items: Res<PlayerItems>,
+    font: Res<RobotoFont>,
+) {
+    if !items.is_changed() && cur_view.is_some() {
+        return;
+    }
+    if let Some(CurrentItemsView(entity)) = cur_view.take() {
+        commands.entity(entity).despawn_recursive();
+    }
+    let next_view = commands
+        .spawn()
+        .insert(MainMenuMarker)
+        .insert(Transform::from_xyz(530., 0., 0.3))
+        .insert(GlobalTransform::default())
+        .with_children(|cmds| {
+            draw_slot(cmds, items.head.equipped(), &font);
+            draw_slot(cmds, items.cloak.equipped(), &font);
+            draw_slot(cmds, items.lockpick.equipped(), &font);
+            draw_slot(cmds, items.boots.equipped(), &font);
+        })
+        .id();
+
+    *cur_view = Some(CurrentItemsView(next_view));
 }
 
 fn clicked_stats(
@@ -218,10 +226,15 @@ fn clicked_stats(
 fn clicked_slot(
     mut event_reader: EventReader<ClickedButtonEvent<ClickedSlot>>,
     mut state: ResMut<State<GameState>>,
+    mut view: ResMut<ViewInvSlot>,
 ) {
-    for _ in event_reader.iter() {
+    for ClickedButtonEvent(ClickedSlot(slot)) in event_reader.iter() {
         log::debug!("moving to inventory screen");
-        // TODO: transition to slot inv
+        view.0 = *slot;
+        view.1 = 0;
+        state
+            .push(GameState::InventoryScreen)
+            .expect("cant move to stats screen");
     }
 }
 
@@ -244,28 +257,22 @@ pub struct MainMenuUiPlugin;
 
 impl Plugin for MainMenuUiPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app
-        .init_resource::<PlayerItems>()
-        .
-        add_system_set(
-            SystemSet::
-                on_enter(GameState::MainMenu)
-                .with_system(setup.system()),
-        )
-        .add_system_set(
-            SystemSet::
-                on_update(GameState::MainMenu)
-                .with_system(clicked_slot.system())
-                .with_system(clicked_stats.system().after("button_click"))
-                .with_system(change_camera_scale_from_resize.system()),
-        )
-        // .add_system_set(
-        //     SystemSet::new()
-        //         .with_run_criteria(FixedTimestep::steps_per_second(4.))
-        //         .with_system(fps_change_text.system()),
-        // )
-        ;
+        app.init_resource::<PlayerItems>()
+            .init_resource::<Option<CurrentItemsView>>()
+            .add_system_set(SystemSet::on_enter(GameState::MainMenu).with_system(setup.system()))
+            .add_system_set(
+                SystemSet::on_exit(GameState::MainMenu)
+                    .with_system(cleanup_system::<MainMenuMarker>.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::MainMenu)
+                    .with_system(clicked_slot.system().after("button_click"))
+                    .with_system(clicked_stats.system().after("button_click"))
+                    .with_system(dispatch_items.system().label("dispatch_inventory"))
+                    .with_system(change_camera_scale_from_resize.system()),
+            );
         register_my_button::<ClickedStats>(app, GameState::MainMenu);
         register_my_button::<ClickedSlot>(app, GameState::MainMenu);
+        register_my_button::<ClickedLevel>(app, GameState::MainMenu);
     }
 }

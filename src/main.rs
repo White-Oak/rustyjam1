@@ -11,6 +11,7 @@ mod items;
 mod button;
 mod cleanup;
 mod stats_screen;
+mod inventory;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
@@ -18,6 +19,7 @@ use bevy_inspector_egui::{InspectorPlugin, WorldInspectorPlugin, widgets::Inspec
 use bevy_prototype_lyon::plugin::ShapePlugin;
 use button::MyButtonPlugin;
 use camera_enemy::EnemyCameraPlugin;
+use inventory::InventoryScreenPlugin;
 use light_radius::LightRadiusPlugin;
 use main_menu_ui::MainMenuUiPlugin;
 use map::MapPlugin;
@@ -32,6 +34,7 @@ use crate::{movement::MovementPlugin, player::PlayerPlugin};
 pub enum GameState {
     MainMenu,
     StatsScreen,
+    InventoryScreen,
     LoadingLevel,
     Level,
 }
@@ -50,7 +53,7 @@ fn main() {
         .insert_resource(Msaa { samples: 8 })
         .add_plugins(DefaultPlugins)
         // .add_plugin(InspectorPlugin::<InspectorQuery<(Entity,)>>::new())
-        // .add_plugin(WorldInspectorPlugin::new())
+        .add_plugin(WorldInspectorPlugin::new())
         // .add_plugin(InspectorPlugin::<InspectorQuery<&mut NoiseColorComponent, With<SmokeBomb>>>::new())
         .add_state(GameState::MainMenu)
         .add_plugin(PlayerPlugin)
@@ -68,6 +71,7 @@ fn main() {
         // .add_plugin(ShapePlugin)
         .add_plugin(MyButtonPlugin)
         .add_plugin(StatsScreenPlugin)
+        .add_plugin(InventoryScreenPlugin)
         .add_startup_system(setup.system())
         .init_resource::<RobotoFont>()
         .run();

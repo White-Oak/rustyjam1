@@ -1,6 +1,9 @@
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    iter::{once, repeat},
+};
 
-use bevy::prelude::*;
+use bevy::{log, prelude::*};
 use itertools::Itertools;
 
 #[derive(Debug, Default)]
@@ -12,6 +15,7 @@ pub struct PlayerStatsMods {
     pub cooldown_reduction: f32,
 }
 
+#[derive(Debug, Clone)]
 pub struct Item {
     pub name: String,
     pub slot: Slot,
@@ -72,9 +76,9 @@ impl Default for Slot {
 }
 
 pub struct SlotItems {
-    slot: Slot,
-    equipped: usize,
-    available: Vec<Item>,
+    pub slot: Slot,
+    pub equipped: usize,
+    pub available: Vec<Item>,
 }
 
 impl SlotItems {
@@ -118,23 +122,71 @@ impl PlayerItems {
         .into_iter()
     }
 
+    pub fn slot_items(&self, slot: Slot) -> &SlotItems {
+        match slot {
+            Slot::Head => &self.head,
+            Slot::Cloak => &self.cloak,
+            Slot::Lockpick => &self.lockpick,
+            Slot::Boots => &self.boots,
+        }
+    }
+
+    pub fn slot_items_mut(&mut self, slot: Slot) -> &mut SlotItems {
+        match slot {
+            Slot::Head => &mut self.head,
+            Slot::Cloak => &mut self.cloak,
+            Slot::Lockpick => &mut self.lockpick,
+            Slot::Boots => &mut self.boots,
+        }
+    }
+
+    pub fn all_available_items_for_slot(&self, slot: Slot) -> impl Iterator<Item = &Item> {
+        let slot_items = self.slot_items(slot);
+        slot_items.available.iter()
+    }
+
     pub fn all_equipped_mods(&self) -> impl Iterator<Item = Mod> + '_ {
         let grouped = self
             .all_equipped_items()
             .flat_map(|item| item.mods.clone())
             .into_grouping_map_by(|a_mod| a_mod.kind);
-        grouped.
-            fold(Mod::default(), |mut acc, kind, next| {
-            // fold_first(|mut acc, _, next| {
+        grouped
+            .fold(Mod::default(), |mut acc, kind, next| {
+                // fold_first(|mut acc, _, next| {
                 acc.kind = *kind;
                 acc.value += next.value;
                 acc
-            }).into_values()
+            })
+            .into_values()
+    }
+
+    pub fn delete_for_slot(&mut self, slot: Slot, index: usize) {
+        let mut slot_items = self.slot_items_mut(slot);
+        if index == slot_items.equipped {
+            log::warn!("tried to delete what's equipped");
+            return;
+        }
+        if index < slot_items.equipped {
+            slot_items.equipped -= 1;
+        }
+        slot_items.available.remove(index);
+    }
+
+    pub fn equip_on_slot(&mut self, slot: Slot, index: usize) {
+        self.slot_items_mut(slot).equipped =  index;
     }
 }
 
 impl Default for PlayerItems {
     fn default() -> Self {
+        let bad_head = Item {
+            name: "Mask".to_string(),
+            slot: Slot::Head,
+            mods: vec![Mod {
+                kind: ModKind::AreaOfEffect,
+                value: 0.5,
+            }],
+        };
         let head = Item {
             name: "Mask".to_string(),
             slot: Slot::Head,
@@ -184,7 +236,7 @@ impl Default for PlayerItems {
         let head = SlotItems {
             slot: Slot::Head,
             equipped: 0,
-            available: vec![head],
+            available: once(bad_head).chain(repeat(head).take(17)).collect_vec(),
         };
         let cloak = SlotItems {
             slot: Slot::Cloak,

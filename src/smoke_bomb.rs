@@ -15,6 +15,7 @@ pub struct SmokeBomb { pub(crate) radius: f32}
 
 fn base_color() -> Vec3 {
     Vec3::splat(0.0125)
+    // Vec3::splat(0.38)
 }
 
 fn spawn_smoke(

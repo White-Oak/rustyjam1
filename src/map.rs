@@ -148,6 +148,20 @@ fn debug_boundaries(
     }
 }
 
+pub fn set_texture_filters_to_nearest(
+    mut texture_events: EventReader<AssetEvent<Texture>>,
+    mut textures: ResMut<Assets<Texture>>,
+) {
+    // quick and dirty, run this for all textures anytime a texture is created.
+    for event in texture_events.iter() {
+        if let AssetEvent::Created { handle } = event {
+            if let Some(mut texture) = textures.get_mut(handle) {
+                texture.sampler.min_filter = FilterMode::Nearest;
+            }
+        }
+    }
+}
+
 pub struct MapPlugin;
 
 impl Plugin for MapPlugin {
@@ -163,19 +177,5 @@ impl Plugin for MapPlugin {
             .add_system_set(
                 SystemSet::on_exit(GameState::LoadingLevel).with_system(spawn_map.system()), // .with_system(debug_boundaries.system()),
             );
-    }
-}
-
-pub fn set_texture_filters_to_nearest(
-    mut texture_events: EventReader<AssetEvent<Texture>>,
-    mut textures: ResMut<Assets<Texture>>,
-) {
-    // quick and dirty, run this for all textures anytime a texture is created.
-    for event in texture_events.iter() {
-        if let AssetEvent::Created { handle } = event {
-            if let Some(mut texture) = textures.get_mut(handle) {
-                texture.sampler.min_filter = FilterMode::Nearest;
-            }
-        }
     }
 }

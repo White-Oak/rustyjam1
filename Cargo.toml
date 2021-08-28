@@ -17,7 +17,10 @@ bevy = { version = "0.5.0", default-features = false, features = [
 ] }
 bevy-inspector-egui = "0.6.1"
 bevy_ecs_tilemap = { git = "https://github.com/StarArawn/bevy_ecs_tilemap.git", features = ["tiled_map"] }
+bevy_prototype_lyon = "0.3.1"
+euclid = "0.22.6"
 itertools = "0.10.1"
+lyon_path = "0.17.6"
 rand = "0.8.4"
 tiled = { version = "0.9.5", default-features = false }
 

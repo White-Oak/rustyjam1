@@ -16,7 +16,7 @@ const SMOKE_CAST_TIME: f32 = 1.0;
 const EMP_CAST_TIME: f32 = 1.5;
 
 const DASH_DURATION: f32 = 0.5;
-const SMOKE_DURATION: f32 = 5.0;
+const SMOKE_DURATION: f32 = 50.0;
 const EMP_DURATION: f32 = 1.5;
 
 const DASH_VEL_MULTI: f32 = 3.;

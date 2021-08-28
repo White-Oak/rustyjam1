@@ -65,10 +65,10 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_startup_system(setup.system()).add_system_set(
-            SystemSet::new()
-                .with_run_criteria(FixedTimestep::steps_per_second(4.))
-                .with_system(fps_change_text.system()),
-        );
+        // app.add_startup_system(setup.system()).add_system_set(
+        //     SystemSet::new()
+        //         .with_run_criteria(FixedTimestep::steps_per_second(4.))
+        //         .with_system(fps_change_text.system()),
+        // );
     }
 }

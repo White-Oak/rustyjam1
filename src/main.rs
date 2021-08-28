@@ -6,15 +6,18 @@ mod perlin;
 mod player;
 mod smoke_bomb;
 mod ui;
+mod main_menu_ui;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
-use bevy_inspector_egui::{widgets::InspectorQuery, };
+use bevy_inspector_egui::{InspectorPlugin, WorldInspectorPlugin, widgets::InspectorQuery};
+use bevy_prototype_lyon::plugin::ShapePlugin;
 use camera_enemy::EnemyCameraPlugin;
 use light_radius::LightRadiusPlugin;
+use main_menu_ui::MainMenuUiPlugin;
 use map::MapPlugin;
-use perlin::PerlinPlugin;
-use smoke_bomb::SmokeBombPlugin;
+use perlin::{NoiseColorComponent, PerlinPlugin};
+use smoke_bomb::{SmokeBomb, SmokeBombPlugin};
 use ui::UiPlugin;
 
 use crate::{movement::MovementPlugin, player::PlayerPlugin};
@@ -26,19 +29,23 @@ pub enum GameState {
     Level,
 }
 
+pub const WIDTH: f32 = 1920. * 0.9;
+pub const HEIGHT: f32 = 1080. * 0.9;
+
 fn main() {
     App::build()
         .insert_resource(WindowDescriptor {
-            width: 1920.0 * 0.8,
-            height: 1080.0 * 0.8,
+            width: WIDTH,
+            height: HEIGHT,
             ..Default::default()
         })
-        .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
+        // .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .insert_resource(Msaa { samples: 8 })
         .add_plugins(DefaultPlugins)
-        // .add_plugin(InspectorPlugin::<InspectorQuery<&mut PerlinComponent>>::new())
-        // .add_plugin(InspectorPlugin::<InspectorQuery<&mut NoiseColorComponent>>::new())
-        .add_state(GameState::LoadingLevel)
+        // .add_plugin(InspectorPlugin::<InspectorQuery<(Entity,)>>::new())
+        .add_plugin(WorldInspectorPlugin::new())
+        // .add_plugin(InspectorPlugin::<InspectorQuery<&mut NoiseColorComponent, With<SmokeBomb>>>::new())
+        .add_state(GameState::MainMenu)
         .add_plugin(PlayerPlugin)
         .add_plugin(MovementPlugin)
         .add_plugin(TilemapPlugin)
@@ -50,6 +57,8 @@ fn main() {
         .add_plugin(UiPlugin)
         .add_plugin(SmokeBombPlugin)
         .add_plugin(LightRadiusPlugin)
+        .add_plugin(MainMenuUiPlugin)
+        .add_plugin(ShapePlugin)
         .add_startup_system(setup.system())
         .run();
 }

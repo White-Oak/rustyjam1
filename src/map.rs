@@ -35,7 +35,9 @@ fn load(
     mut current_level: ResMut<CurrentLevelHandle>,
     sel_level: Res<SelectedLevel>,
 ) {
-    let handle: Handle<TiledMap> = asset_server.load(format!("level{}.tmx", sel_level.0).as_str());
+    let path = format!("level{}.tmx", sel_level.0);
+    log::info!("loading {}", path);
+    let handle: Handle<TiledMap> = asset_server.load(path.as_str());
     current_level.0 = handle;
 }
 
@@ -59,11 +61,11 @@ fn load_boundaries(
     mut spawn: ResMut<SpawnPoint>,
     mut camera_spawns: ResMut<Vec<CameraSpawn>>,
     map_assets: ResMut<Assets<TiledMap>>,
-    asset_server: Res<AssetServer>,
     mut state: ResMut<State<GameState>>,
     mut camera: Query<&mut Transform, With<MainCamera>>,
+    current_level: Res<CurrentLevelHandle>
 ) {
-    let handle: Handle<TiledMap> = asset_server.load("level1.tmx");
+    let handle: Handle<TiledMap> = current_level.0.clone();
     let map = if let Some(x) = map_assets.get(handle) {
         x
     } else {

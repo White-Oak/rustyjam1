@@ -193,13 +193,13 @@ fn generate_rewards(
                     );
                     cmds.spawn_bundle(Text2dBundle {
                         text: select,
-                        transform: Transform::from_xyz(0., -400., 0.001),
+                        transform: Transform::from_xyz(0., -398., 0.001),
                         ..Default::default()
                     })
                     .with_children(|cmds| {
                         cmds.spawn_bundle(MyButtonBundle {
                             button: MyButton {
-                                size: Vec2::new(84., 30.),
+                                size: Vec2::new(320., 60.),
                                 id: ClickedReward(i),
                             },
                             transform: Transform::from_xyz(0., 0., 0.001),

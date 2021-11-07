@@ -154,6 +154,31 @@ fn setup(
                     ..Default::default()
                 });
             });
+
+            cmds.spawn_bundle(MyButtonBundle {
+                button: MyButton {
+                    size: Vec2::new(940., 156.),
+                    id: ClickedLevel(2),
+                },
+                transform: Transform::from_xyz(330., 45., 0.001),
+                ..Default::default()
+            })
+            .with_children(|cmds| {
+                let level1 = Text::with_section(
+                    "Debug reward level".to_string(),
+                    TextStyle {
+                        font: font_handle.clone(),
+                        font_size: 50.0,
+                        color: Color::rgb_u8(255, 252, 236),
+                    },
+                    Default::default(),
+                );
+                cmds.spawn_bundle(Text2dBundle {
+                    text: level1,
+                    transform: Transform::from_xyz(-90., 20., 0.001),
+                    ..Default::default()
+                });
+            });
         });
 
     cmds.spawn()

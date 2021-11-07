@@ -1,12 +1,9 @@
-use std::{
-    fmt::Display,
-    iter::{once, repeat},
-    ops::Range,
-};
+use std::{fmt::Display, fs::File, io::Read, iter::{once, repeat}, ops::Range};
 
 use bevy::{log, prelude::*};
 use itertools::Itertools;
 use rand::{prelude::SliceRandom, thread_rng, Rng};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default)]
 pub struct PlayerStatsMods {
@@ -17,14 +14,14 @@ pub struct PlayerStatsMods {
     pub cooldown_reduction: f32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Item {
     pub name: String,
     pub slot: Slot,
     pub mods: Vec<Mod>,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Mod {
     pub kind: ModKind,
     pub value: f32,
@@ -36,7 +33,7 @@ impl Display for Mod {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ModKind {
     LightRadius,
     AreaOfEffect,
@@ -73,7 +70,7 @@ impl ModKind {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Slot {
     Head,
     Cloak,
@@ -116,6 +113,7 @@ impl Default for Slot {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SlotItems {
     pub slot: Slot,
     pub equipped: usize,
@@ -128,6 +126,7 @@ impl SlotItems {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerItems {
     pub head: SlotItems,
     pub cloak: SlotItems,
@@ -266,73 +265,85 @@ pub fn generate() -> Vec<Item> {
     items
 }
 
-impl Default for PlayerItems {
-    fn default() -> Self {
-        let bad_head = Item {
-            name: "Mask".to_string(),
-            slot: Slot::Head,
-            mods: vec![Mod {
-                kind: ModKind::AreaOfEffect,
-                value: 0.5,
-            }],
-        };
-        let head = Item {
-            name: "Mask".to_string(),
-            slot: Slot::Head,
-            mods: vec![Mod {
-                kind: ModKind::LightRadius,
-                value: 0.33,
-            }],
-        };
-        let cloak = Item {
-            name: "Cloak".to_string(),
-            slot: Slot::Cloak,
-            mods: vec![Mod {
-                kind: ModKind::LightRadius,
-                value: 0.33,
-            }],
-        };
-        let lockpick = Item {
-            name: "Lockpick".to_string(),
-            slot: Slot::Lockpick,
-            mods: vec![Mod {
-                kind: ModKind::LightRadius,
-                value: 0.33,
-            }],
-        };
-        let boots = Item {
-            name: "Boots".to_string(),
-            slot: Slot::Boots,
-            mods: vec![Mod {
-                kind: ModKind::LightRadius,
-                value: 0.33,
-            }],
-        };
-        let head = SlotItems {
-            slot: Slot::Head,
-            equipped: 0,
-            available: once(bad_head).chain(once(head)).collect_vec(),
-        };
-        let cloak = SlotItems {
-            slot: Slot::Cloak,
-            equipped: 0,
-            available: vec![cloak],
-        };
-        let lockpick = SlotItems {
-            slot: Slot::Lockpick,
-            equipped: 0,
-            available: vec![lockpick],
-        };
-        let boots = SlotItems {
-            slot: Slot::Boots,
-            equipped: 0,
-            available: vec![boots],
-        };
-        PlayerItems {
-            head,
-            cloak,
-            lockpick,
-            boots,
+impl FromWorld for PlayerItems {
+    fn from_world(_world: &mut World) -> Self {
+        match File::open("save.json") {
+            Ok(mut file) => {
+                let mut contents = String::new();
+                file.read_to_string(&mut contents)
+                    .expect("cant read a save");
+                serde_json::from_str(&contents).expect("cant deserialize a save")
+            }
+            Err(_) => default_items(),
         }
+    }
+}
+
+fn default_items() -> PlayerItems {
+    let bad_head = Item {
+        name: "Mask".to_string(),
+        slot: Slot::Head,
+        mods: vec![Mod {
+            kind: ModKind::AreaOfEffect,
+            value: 0.5,
+        }],
+    };
+    let head = Item {
+        name: "Mask".to_string(),
+        slot: Slot::Head,
+        mods: vec![Mod {
+            kind: ModKind::LightRadius,
+            value: 0.33,
+        }],
+    };
+    let cloak = Item {
+        name: "Cloak".to_string(),
+        slot: Slot::Cloak,
+        mods: vec![Mod {
+            kind: ModKind::LightRadius,
+            value: 0.33,
+        }],
+    };
+    let lockpick = Item {
+        name: "Lockpick".to_string(),
+        slot: Slot::Lockpick,
+        mods: vec![Mod {
+            kind: ModKind::LightRadius,
+            value: 0.33,
+        }],
+    };
+    let boots = Item {
+        name: "Boots".to_string(),
+        slot: Slot::Boots,
+        mods: vec![Mod {
+            kind: ModKind::LightRadius,
+            value: 0.33,
+        }],
+    };
+    let head = SlotItems {
+        slot: Slot::Head,
+        equipped: 0,
+        available: once(bad_head).chain(once(head)).collect_vec(),
+    };
+    let cloak = SlotItems {
+        slot: Slot::Cloak,
+        equipped: 0,
+        available: vec![cloak],
+    };
+    let lockpick = SlotItems {
+        slot: Slot::Lockpick,
+        equipped: 0,
+        available: vec![lockpick],
+    };
+    let boots = SlotItems {
+        slot: Slot::Boots,
+        equipped: 0,
+        available: vec![boots],
+    };
+    PlayerItems {
+        head,
+        cloak,
+        lockpick,
+        boots,
     }
 }

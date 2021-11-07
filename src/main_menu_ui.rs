@@ -1,3 +1,5 @@
+use std::{fs::File, io::Write};
+
 use bevy::{log, prelude::*, window::WindowResized};
 use itertools::Itertools;
 
@@ -20,6 +22,9 @@ struct ClickedLevel(u32);
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct SelectedLevel(pub u32);
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ClickedSave;
 
 struct MainMenuMarker;
 
@@ -126,8 +131,33 @@ fn setup(
             );
             cmds.spawn_bundle(Text2dBundle {
                 text: levels_header,
-                transform: Transform::from_xyz(307., 340., 0.001),
+                transform: Transform::from_xyz(207., 340., 0.001),
                 ..Default::default()
+            });
+
+            cmds.spawn_bundle(MyButtonBundle {
+                button: MyButton {
+                    size: Vec2::new(100., 60.),
+                    id: ClickedSave,
+                },
+                transform: Transform::from_xyz(630., 360., 0.001),
+                ..Default::default()
+            })
+            .with_children(|cmds| {
+                let level1 = Text::with_section(
+                    "Save".to_string(),
+                    TextStyle {
+                        font: font_handle.clone(),
+                        font_size: 24.0,
+                        color: Color::rgb_u8(255, 252, 236),
+                    },
+                    Default::default(),
+                );
+                cmds.spawn_bundle(Text2dBundle {
+                    text: level1,
+                    transform: Transform::from_xyz(0., 0., 0.001),
+                    ..Default::default()
+                });
             });
 
             cmds.spawn_bundle(MyButtonBundle {
@@ -303,6 +333,17 @@ fn clicked_level(
     }
 }
 
+fn clicked_save(
+    mut event_reader: EventReader<ClickedButtonEvent<ClickedSave>>,
+    items: Res<PlayerItems>,
+) {
+    for _ in event_reader.iter() {
+        let json = serde_json::to_string_pretty(&items as &PlayerItems).expect("cant serialize items");
+        let mut file = File::create("save.json").expect("cant create file to save");
+        file.write_all(json.as_bytes()).expect("cant write a save");
+    }
+}
+
 pub fn change_camera_scale_from_resize(
     mut query: Query<&mut Transform, With<MainCamera>>,
     mut events: EventReader<WindowResized>,
@@ -336,11 +377,13 @@ impl Plugin for MainMenuUiPlugin {
                     .with_system(clicked_slot.system().after("button_click"))
                     .with_system(clicked_stats.system().after("button_click"))
                     .with_system(clicked_level.system().after("button_click"))
+                    .with_system(clicked_save.system().after("button_click"))
                     .with_system(dispatch_items.system().label("dispatch_inventory"))
                     .with_system(change_camera_scale_from_resize.system()),
             );
         register_my_button::<ClickedStats>(app, GameState::MainMenu);
         register_my_button::<ClickedSlot>(app, GameState::MainMenu);
         register_my_button::<ClickedLevel>(app, GameState::MainMenu);
+        register_my_button::<ClickedSave>(app, GameState::MainMenu);
     }
 }

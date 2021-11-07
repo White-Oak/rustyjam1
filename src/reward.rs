@@ -116,8 +116,8 @@ fn generate_rewards(
                 let sprite = Sprite::new(Vec2::new(320., 578.) * 2.);
                 let texture = match item.mods.len() {
                     1 => common.0.clone(),
-                    2 => common.0.clone(),
-                    4 => common.0.clone(),
+                    2 => magic.0.clone(),
+                    4 => rare.0.clone(),
                     _ => todo!(),
                 };
                 let x = (i as f32 - 1.) * 800.;
@@ -126,7 +126,7 @@ fn generate_rewards(
                     material: texture,
                     visible: Visible {
                         is_visible: true,
-                        is_transparent: false,
+                        is_transparent: true,
                     },
                     transform: Transform::from_xyz(x, 0., 0.1),
                     ..Default::default()

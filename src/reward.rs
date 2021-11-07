@@ -112,7 +112,7 @@ fn generate_rewards(
             &pp_handle,
             1000.,
             0.09,
-            Vec3::new(0.2, 0.2, 0.02),
+            Vec3::new(0.05, 0.05, 0.01),
         ))
         .with_children(|cmds| {
             for (i, item) in items.into_iter().enumerate() {

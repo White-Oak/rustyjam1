@@ -123,9 +123,9 @@ fn generate_rewards(
                     4 => rare.0.clone(),
                     _ => todo!(),
                 };
-                let x = (i as f32 - 1.) * 400.;
+                let x = (i as f32 - 1.) * 450.;
                 let mut transform = Transform::from_xyz(x, 0., 0.1);
-                transform.scale = (Vec2::splat(0.5), 1.).into();
+                transform.scale = (Vec2::splat(0.6), 1.).into();
                 cmds.spawn_bundle(SpriteBundle {
                     sprite,
                     material: texture,
@@ -141,7 +141,7 @@ fn generate_rewards(
                         item.name.clone(),
                         TextStyle {
                             font: font.0.clone(),
-                            font_size: 21.0,
+                            font_size: 32.0,
                             color: light_text_color(),
                         },
                         TextAlignment {
@@ -165,7 +165,7 @@ fn generate_rewards(
                         text,
                         TextStyle {
                             font: font.0.clone(),
-                            font_size: 15.0,
+                            font_size: 20.0,
                             color: light_text_color(),
                         },
                         TextAlignment {
@@ -183,7 +183,7 @@ fn generate_rewards(
                         "Select".to_string(),
                         TextStyle {
                             font: font.0.clone(),
-                            font_size: 16.,
+                            font_size: 18.,
                             color: light_text_color(),
                         },
                         TextAlignment {

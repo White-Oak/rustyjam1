@@ -42,10 +42,12 @@ fn load(
 fn spawn_map(mut commands: Commands, current_level: Res<CurrentLevelHandle>) {
     let map_entity = commands.spawn().id();
 
+    let mut transform = Transform::from_xyz(0.0, 0.0, 0.0);
+    // transform.scale = (Vec2::splat(0.99), 1.).into();
     commands.entity(map_entity).insert_bundle(TiledMapBundle {
         tiled_map: current_level.0.clone(),
         map: Map::new(0u16, map_entity),
-        transform: Transform::from_xyz(0.0, 0.0, 0.0),
+        transform, 
         ..Default::default()
     }).insert(LevelMarker);
 }
@@ -137,8 +139,8 @@ fn load_boundaries(
     let mut camera_tr = camera.single_mut().expect("inexisting camera");
     camera_tr.translation.x = spawn_x;
     camera_tr.translation.y = spawn_y;
-    camera_tr.scale.x = 1. / 2.;
-    camera_tr.scale.y = 1. / 2.;
+    // camera_tr.scale.x = 1. / 2.;
+    // camera_tr.scale.y = 1. / 2.;
     state.set(GameState::Level).expect("cant set state");
 }
 

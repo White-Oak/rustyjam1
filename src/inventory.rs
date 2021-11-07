@@ -59,18 +59,17 @@ fn setup(
     commands
         .spawn()
         .insert(InventoryScreenMarker)
-        .insert(Transform::default())
         .insert(GlobalTransform::default())
         .insert_bundle(MeshBundle {
             mesh: meshes.add(mesh),
-            transform: Transform::from_xyz(0., 0., 0.2),
+            transform: Transform::from_xyz(0., 0., 0.6),
             ..Default::default()
         })
         .insert_bundle(PerlinBundle::new(
             &pp_handle,
             1500.,
             0.2,
-            Vec3::new(0.05, 0.05, 0.05),
+            Vec3::new(0.09, 0.09, 0.09),
         ))
         .with_children(|cmds| {
             let sprite = Sprite::new(Vec2::new(950., 804.) * 1.2);
@@ -322,7 +321,7 @@ fn dispatch_items(
     let next_view = commands
         .spawn()
         .insert(InventoryScreenMarker)
-        .insert(Transform::from_xyz(0., -33., 0.3))
+        .insert(Transform::from_xyz(0., -33., 0.7))
         .insert(GlobalTransform::default())
         .with_children(|cmds| {
             let min_el = view.1 as usize;

@@ -29,7 +29,7 @@ impl FromWorld for RewardCommon {
         let asset_server = world
             .get_resource::<AssetServer>()
             .expect("no assets server");
-        let handle = asset_server.load("reward1.png");
+        let handle = asset_server.load("reward2.png");
         let mut materials = world
             .get_resource_mut::<Assets<ColorMaterial>>()
             .expect("no materials");
@@ -57,7 +57,7 @@ impl FromWorld for RewardMagic {
         let asset_server = world
             .get_resource::<AssetServer>()
             .expect("no assets server");
-        let handle = asset_server.load("reward2.png");
+        let handle = asset_server.load("reward3.png");
         let mut materials = world
             .get_resource_mut::<Assets<ColorMaterial>>()
             .expect("no materials");
@@ -92,12 +92,15 @@ fn generate_rewards(
     mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, v_pos);
     mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices)));
     mesh.set_attribute(Mesh::ATTRIBUTE_UV_0, uv);
-    let mut tr = tr.clone();
+    let mut tr = tr;
     tr.z += 0.5;
-    let mut tr = Transform::from_translation(tr);
-    tr.scale = (Vec2::splat(0.3), 0.).into();
-    commands
-        .spawn()
+    let tr = Transform::from_translation(tr);
+    let mut ui_bundle = commands.spawn_bundle(UiCameraBundle::default());
+    let ui_cmds = ui_bundle // root node
+        .commands();
+    let mut cmds = ui_cmds
+        .spawn();
+        cmds
         .insert(RewardMarker)
         .insert(GlobalTransform::default())
         .insert_bundle(MeshBundle {
@@ -108,7 +111,7 @@ fn generate_rewards(
         .insert_bundle(PerlinBundle::new(
             &pp_handle,
             1000.,
-            0.3,
+            0.09,
             Vec3::new(0.2, 0.2, 0.02),
         ))
         .with_children(|cmds| {
@@ -120,7 +123,9 @@ fn generate_rewards(
                     4 => rare.0.clone(),
                     _ => todo!(),
                 };
-                let x = (i as f32 - 1.) * 800.;
+                let x = (i as f32 - 1.) * 400.;
+                let mut transform = Transform::from_xyz(x, 0., 0.1);
+                transform.scale = (Vec2::splat(0.5), 1.).into();
                 cmds.spawn_bundle(SpriteBundle {
                     sprite,
                     material: texture,
@@ -128,7 +133,7 @@ fn generate_rewards(
                         is_visible: true,
                         is_transparent: true,
                     },
-                    transform: Transform::from_xyz(x, 0., 0.1),
+                    transform,
                     ..Default::default()
                 })
                 .with_children(|cmds| {
@@ -188,7 +193,7 @@ fn generate_rewards(
                     );
                     cmds.spawn_bundle(Text2dBundle {
                         text: select,
-                        transform: Transform::from_xyz(0., -450., 0.001),
+                        transform: Transform::from_xyz(0., -400., 0.001),
                         ..Default::default()
                     })
                     .with_children(|cmds| {

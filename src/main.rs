@@ -92,7 +92,8 @@ pub struct RobotoFont(pub Handle<Font>);
 impl FromWorld for RobotoFont {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.get_resource::<AssetServer>().expect("no assets server");
-        let handle = asset_server.load("Roboto-Regular.ttf");
+        // let handle = asset_server.load("Roboto-Regular.ttf");
+        let handle = asset_server.load("FiraSans-Bold.ttf");
         RobotoFont(handle)
     }
 }

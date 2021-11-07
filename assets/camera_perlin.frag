@@ -73,11 +73,15 @@ void main()
 
 float n = 0;
 n+= first_octave * classicPerlinNoise(xy - vec2(time));
+n+= first_octave * classicPerlinNoise(-xy - vec2(time));
+n+= first_octave / 2. * classicPerlinNoise(xy * 2. - vec2(time * 1.4));
 n+= first_octave / 2. * classicPerlinNoise(-xy * 2. - vec2(time * 1.4));
 n+= first_octave / 4. * classicPerlinNoise(xy * 4. - vec2(time * 2.0));
+n+= first_octave / 4. * classicPerlinNoise(-xy * 4. - vec2(time * 2.0));
+n+= first_octave / 8.  * classicPerlinNoise(xy * 8. - vec2(time * 2.8));
 n+= first_octave / 8.  * classicPerlinNoise(-xy * 8. - vec2(time * 2.8));
 n+= first_octave / 16. * classicPerlinNoise(xy * 16. - vec2(time * 4.0));
-n+= first_octave / 32. * classicPerlinNoise(-xy * 32. - vec2(time * 8.0));
+n+= first_octave / 16. * classicPerlinNoise(-xy * 16. - vec2(time * 4.0));
 
     vec4 result = vec4(base_color, clamp(uv + n, 0., 1.));
 

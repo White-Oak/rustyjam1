@@ -41,7 +41,7 @@ fn spawn_smoke(
             indices.extend_from_slice(&[prev as u32, next as u32, 0]);
         }
         indices.extend_from_slice(&[1, 0, divisions]);
-        let uv: Vec<_> = once(0.7).chain(repeat(1.1).take(divisions as usize)).collect();
+        let uv: Vec<_> = once(0.4).chain(repeat(1.1).take(divisions as usize)).collect();
         let mut mesh = Mesh::new(bevy::render::pipeline::PrimitiveTopology::TriangleList);
         mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, v_pos);
         mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices.clone())));

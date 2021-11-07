@@ -16,7 +16,7 @@ pub struct CameraSpawn {
 }
 
 const NOISE_RESOLUTION: f32 = 2000.;
-const NOISE_OCTAVE: f32 = 0.1;
+const NOISE_OCTAVE: f32 = 0.15;
 const TRANSPARENCY_BASES: [f32; 3] = [0.8, 0.2, 0.2];
 const CAMERA_INDICES: [u32; 3] = [0, 1, 2];
 

@@ -67,7 +67,7 @@ fn treasure_collide(
     mut state: ResMut<State<GameState>>,
 ) {
     let tr = player.single().expect("single player").translation;
-    treasures.for_each(|tr_tr| {
+    for tr_tr in treasures.iter() {
         if collide_aabb::collide(tr, Vec2::splat(100.), tr_tr.translation, Vec2::splat(100.))
             .is_some()
         {
@@ -76,7 +76,7 @@ fn treasure_collide(
                 .expect("cant move to treasure choosing");
             return;
         }
-    })
+    }
 }
 
 struct TreasurePipeline(Handle<PipelineDescriptor>);

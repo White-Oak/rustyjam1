@@ -1,4 +1,3 @@
-
 use std::iter::{once, repeat};
 
 use bevy::{
@@ -7,11 +6,16 @@ use bevy::{
 };
 use itertools::Itertools;
 
-use crate::{GameState, perlin::{PerlinBundle, PerlinPipelineHandle}};
+use crate::{
+    perlin::{PerlinBundle, PerlinPipelineHandle},
+    GameState,
+};
 
 pub const SMOKE_BOMB_RADIUS: f32 = 50.;
 
-pub struct SmokeBomb { pub(crate) radius: f32}
+pub struct SmokeBomb {
+    pub(crate) radius: f32,
+}
 
 fn base_color() -> Vec3 {
     Vec3::splat(0.0125)
@@ -20,7 +24,7 @@ fn base_color() -> Vec3 {
 
 fn spawn_smoke(
     mut commands: Commands,
-    query: Query<(Entity,&Transform, &SmokeBomb), Added<SmokeBomb>>,
+    query: Query<(Entity, &Transform, &SmokeBomb), Added<SmokeBomb>>,
     pp_handle: Res<PerlinPipelineHandle>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
@@ -41,7 +45,9 @@ fn spawn_smoke(
             indices.extend_from_slice(&[prev as u32, next as u32, 0]);
         }
         indices.extend_from_slice(&[1, 0, divisions]);
-        let uv: Vec<_> = once(0.4).chain(repeat(1.1).take(divisions as usize)).collect();
+        let uv: Vec<_> = once(0.4)
+            .chain(repeat(1.1).take(divisions as usize))
+            .collect();
         let mut mesh = Mesh::new(bevy::render::pipeline::PrimitiveTopology::TriangleList);
         mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, v_pos);
         mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices.clone())));
@@ -55,21 +61,15 @@ fn spawn_smoke(
                 transform: tr,
                 ..Default::default()
             })
-            .insert_bundle(PerlinBundle::new(
-                &pp_handle,
-                300.,
-                0.2,
-                base_color(),
-            ));
+            .insert_bundle(PerlinBundle::new(&pp_handle, 300., 0.2, base_color()));
     });
 }
 
 pub struct SmokeBombPlugin;
 impl Plugin for SmokeBombPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app
-            .add_system_set(
-                SystemSet::on_update(GameState::Level).with_system(spawn_smoke.system()),
-            );
+        app.add_system_set(
+            SystemSet::on_update(GameState::Level).with_system(spawn_smoke.system()),
+        );
     }
 }

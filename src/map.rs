@@ -8,7 +8,14 @@ use bevy::{
 use bevy_ecs_tilemap::prelude::*;
 use tiled::PropertyValue;
 
-use crate::{GameState, MainCamera, camera_enemy::CameraSpawn, items::PlayerItems, main_menu_ui::SelectedLevel, player::{LevelMarker, PLAYER_SIZE}, treasure::TreasureSpawn};
+use crate::{
+    camera_enemy::CameraSpawn,
+    items::PlayerItems,
+    main_menu_ui::SelectedLevel,
+    player::{LevelMarker, PLAYER_SIZE},
+    treasure::TreasureSpawn,
+    GameState, MainCamera,
+};
 
 // pub struct TiledMapHandle(Handle<TiledMap>);
 
@@ -46,12 +53,15 @@ fn spawn_map(mut commands: Commands, current_level: Res<CurrentLevelHandle>) {
 
     let mut transform = Transform::from_xyz(0.0, 0.0, 0.0);
     // transform.scale = (Vec2::splat(0.99), 1.).into();
-    commands.entity(map_entity).insert_bundle(TiledMapBundle {
-        tiled_map: current_level.0.clone(),
-        map: Map::new(0u16, map_entity),
-        transform, 
-        ..Default::default()
-    }).insert(LevelMarker);
+    commands
+        .entity(map_entity)
+        .insert_bundle(TiledMapBundle {
+            tiled_map: current_level.0.clone(),
+            map: Map::new(0u16, map_entity),
+            transform,
+            ..Default::default()
+        })
+        .insert(LevelMarker);
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -63,7 +73,7 @@ fn load_boundaries(
     map_assets: ResMut<Assets<TiledMap>>,
     mut state: ResMut<State<GameState>>,
     mut camera: Query<&mut Transform, With<MainCamera>>,
-    current_level: Res<CurrentLevelHandle>
+    current_level: Res<CurrentLevelHandle>,
 ) {
     let handle: Handle<TiledMap> = current_level.0.clone();
     let map = if let Some(x) = map_assets.get(handle) {

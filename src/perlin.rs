@@ -1,14 +1,10 @@
 use bevy::{
     core::Bytes,
-    prelude::{
-        *,
-    },
+    prelude::*,
     reflect::TypeUuid,
     render::{
         pipeline::{BlendFactor, BlendOperation, BlendState, PipelineDescriptor, RenderPipeline},
-        render_graph::{
-            base::node::MAIN_PASS, RenderGraph, RenderResourcesNode,
-        },
+        render_graph::{base::node::MAIN_PASS, RenderGraph, RenderResourcesNode},
         renderer::{RenderResource, RenderResourceType, RenderResources},
         shader::{ShaderStage, ShaderStages},
     },
@@ -55,7 +51,7 @@ pub struct NoiseColorComponent {
 #[repr(C)]
 pub struct PerlinComponent {
     pub resolution: f32,
-    pub first_octave: f32
+    pub first_octave: f32,
 }
 
 impl RenderResource for PerlinComponent {
@@ -79,7 +75,6 @@ impl RenderResource for PerlinComponent {
     }
 }
 
-
 #[derive(Bundle)]
 pub struct PerlinBundle {
     time: TimeComponent,
@@ -91,10 +86,18 @@ pub struct PerlinBundle {
 }
 
 impl PerlinBundle {
-    pub fn new(handle: &PerlinPipelineHandle, resolution: f32, first_octave: f32, color: Vec3) -> Self {
+    pub fn new(
+        handle: &PerlinPipelineHandle,
+        resolution: f32,
+        first_octave: f32,
+        color: Vec3,
+    ) -> Self {
         PerlinBundle {
             time: TimeComponent::default(),
-            noise:  PerlinComponent { resolution, first_octave} ,
+            noise: PerlinComponent {
+                resolution,
+                first_octave,
+            },
             render_pipelines: RenderPipelines::from_pipelines(vec![RenderPipeline::new(
                 handle.0.clone(),
             )]),
@@ -107,9 +110,7 @@ impl PerlinBundle {
                 is_transparent: true,
                 is_visible: true,
             },
-            color: NoiseColorComponent {
-                value: color,
-            },
+            color: NoiseColorComponent { value: color },
         }
     }
 }

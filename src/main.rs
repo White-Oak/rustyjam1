@@ -1,19 +1,19 @@
+mod button;
 mod camera_enemy;
+mod cleanup;
+mod inventory;
+mod items;
 mod light_radius;
+mod main_menu_ui;
 mod map;
 mod movement;
 mod perlin;
 mod player;
-mod smoke_bomb;
-mod ui;
-mod main_menu_ui;
-mod items;
-mod button;
-mod cleanup;
-mod stats_screen;
-mod inventory;
-mod treasure;
 mod reward;
+mod smoke_bomb;
+mod stats_screen;
+mod treasure;
+mod ui;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
@@ -24,9 +24,9 @@ use inventory::InventoryScreenPlugin;
 use light_radius::LightRadiusPlugin;
 use main_menu_ui::MainMenuUiPlugin;
 use map::MapPlugin;
-use perlin::{PerlinPlugin};
+use perlin::PerlinPlugin;
 use reward::RewardPlugin;
-use smoke_bomb::{SmokeBombPlugin};
+use smoke_bomb::SmokeBombPlugin;
 use stats_screen::StatsScreenPlugin;
 use treasure::TreasurePlugin;
 use ui::UiPlugin;
@@ -40,7 +40,7 @@ pub enum GameState {
     InventoryScreen,
     LoadingLevel,
     Level,
-    ChoosingTreasure
+    ChoosingTreasure,
 }
 
 pub const WIDTH: f32 = 1920. * 0.9;
@@ -87,11 +87,12 @@ fn setup(mut commands: Commands) {
         .insert(MainCamera);
 }
 
-
 pub struct RobotoFont(pub Handle<Font>);
 impl FromWorld for RobotoFont {
     fn from_world(world: &mut World) -> Self {
-        let asset_server = world.get_resource::<AssetServer>().expect("no assets server");
+        let asset_server = world
+            .get_resource::<AssetServer>()
+            .expect("no assets server");
         // let handle = asset_server.load("Roboto-Regular.ttf");
         let handle = asset_server.load("FiraSans-Bold.ttf");
         RobotoFont(handle)

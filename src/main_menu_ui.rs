@@ -100,7 +100,7 @@ fn setup(
     mut cmds: Commands,
     asset_server: ResMut<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    mut camera: Query<&mut Transform, With<MainCamera>>
+    mut camera: Query<&mut Transform, With<MainCamera>>,
 ) {
     let mut cam = camera.single_mut().unwrap();
     cam.translation = Vec3::new(0., 0., 999.);
@@ -338,7 +338,8 @@ fn clicked_save(
     items: Res<PlayerItems>,
 ) {
     for _ in event_reader.iter() {
-        let json = serde_json::to_string_pretty(&items as &PlayerItems).expect("cant serialize items");
+        let json =
+            serde_json::to_string_pretty(&items as &PlayerItems).expect("cant serialize items");
         let mut file = File::create("save.json").expect("cant create file to save");
         file.write_all(json.as_bytes()).expect("cant write a save");
     }

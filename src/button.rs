@@ -116,7 +116,12 @@ pub fn register_my_button<T: Default + Clone + Send + Sync + 'static>(
         .add_system_set(
             SystemSet::on_update(on_state)
                 .with_system(select_button::<T>.system().label("button_selector"))
-                .with_system(check_for_clicks::<T>.system().label("button_click").after("button_selector")),
+                .with_system(
+                    check_for_clicks::<T>
+                        .system()
+                        .label("button_click")
+                        .after("button_selector"),
+                ),
         )
         .add_event::<SelectedButtonEvent<T>>()
         .add_event::<ClickedButtonEvent<T>>();

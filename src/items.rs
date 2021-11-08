@@ -1,4 +1,10 @@
-use std::{fmt::Display, fs::File, io::Read, iter::{once, repeat}, ops::Range};
+use std::{
+    fmt::Display,
+    fs::File,
+    io::Read,
+    iter::{once, repeat},
+    ops::Range,
+};
 
 use bevy::{log, prelude::*};
 use itertools::Itertools;

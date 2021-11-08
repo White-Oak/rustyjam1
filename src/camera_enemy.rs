@@ -3,7 +3,12 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{GameState, perlin::{NoiseColorComponent, PerlinBundle, PerlinPipelineHandle}, player::{Dashing, Player}, smoke_bomb::SmokeBomb};
+use crate::{
+    perlin::{NoiseColorComponent, PerlinBundle, PerlinPipelineHandle},
+    player::{Dashing, Player},
+    smoke_bomb::SmokeBomb,
+    GameState,
+};
 
 /// (position, start_a, radius)
 #[derive(Debug, Clone, Copy)]
@@ -51,7 +56,9 @@ fn spawn_camera(
         }
         let points: [Vec2; 3] = [v_pos[0].into(), v_pos[1].into(), v_pos[2].into()];
         mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, v_pos);
-        mesh.set_indices(Some(bevy::render::mesh::Indices::U32(CAMERA_INDICES.to_vec())));
+        mesh.set_indices(Some(bevy::render::mesh::Indices::U32(
+            CAMERA_INDICES.to_vec(),
+        )));
         mesh.set_attribute(Mesh::ATTRIBUTE_UV_0, TRANSPARENCY_BASES.to_vec());
 
         commands

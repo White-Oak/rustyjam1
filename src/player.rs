@@ -30,7 +30,7 @@ struct CastingSpell {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum SpellKind {
+pub enum SpellKind {
     Dash,
     Smoke,
     Emp,

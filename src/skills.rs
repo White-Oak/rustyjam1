@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::{asset::Asset, prelude::*};
 
-use crate::{cleanup::cleanup_system, GameState};
+use crate::{cleanup::cleanup_system, player::SpellKind, GameState};
 
 const BASE_WIDTH: f32 = 352. / 2560. * 100. * 0.75;
 const BASE_HEIGHT: f32 = 227. / 1440. * 100. * 0.75;
@@ -50,6 +50,28 @@ struct SkillState {
 
 struct SkillsUiMarker;
 
+trait UiSkill {
+    fn icon_name(&self) -> &'static str;
+    fn enabled(&self) -> bool;
+}
+
+impl UiSkill for SpellKind {
+    fn icon_name(&self) -> &'static str {
+        match self {
+            SpellKind::Dash => "Q",
+            SpellKind::Smoke => "E",
+            SpellKind::Emp => "R",
+        }
+    }
+
+    fn enabled(&self) -> bool {
+        !matches!(self, SpellKind::Emp)
+    }
+}
+
+struct CooldownMarker;
+struct IconMarker;
+
 fn setup(
     mut commands: Commands,
     textures: Res<SkillsUiHandles>,
@@ -60,22 +82,7 @@ fn setup(
         .commands();
     let material = textures.none_material.clone();
     let font_handle = asset_server.load("FiraSans-Bold.ttf");
-    let text = Text::with_section(
-        "FPS: ".to_string(),
-        TextStyle {
-            font: font_handle.clone(),
-            font_size: 30.0,
-            color: Color::WHITE,
-        },
-        TextAlignment {
-            vertical: VerticalAlign::Top,
-            horizontal: HorizontalAlign::Left,
-        },
-    );
     ui_cmds
-        // .spawn()
-        // .insert(Transform::default())
-        // .insert(GlobalTransform::default())
         .spawn_bundle(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
@@ -115,7 +122,7 @@ fn setup(
                 ..Default::default()
             })
             .with_children(|ec| {
-                for s in ["Q", "E"] {
+                for s in [SpellKind::Dash, SpellKind::Smoke] {
                     ec.spawn_bundle(NodeBundle {
                         style: Style {
                             flex_direction: FlexDirection::ColumnReverse,
@@ -144,9 +151,14 @@ fn setup(
                             },
                         );
                         ec.spawn_bundle(TextBundle {
+                            visible: Visible {
+                                is_transparent: true,
+                                is_visible: false,
+                            },
                             text,
                             ..Default::default()
-                        });
+                        })
+                        .insert(CooldownMarker);
                         ec.spawn_bundle(NodeBundle {
                             style: Style {
                                 size: Size {
@@ -162,7 +174,7 @@ fn setup(
                         })
                         .with_children(|ec| {
                             let text = Text::with_section(
-                                s.to_string(),
+                                s.icon_name(),
                                 TextStyle {
                                     font: font_handle.clone(),
                                     font_size: 48.0,
@@ -176,7 +188,8 @@ fn setup(
                             ec.spawn_bundle(TextBundle {
                                 text,
                                 ..Default::default()
-                            });
+                            })
+                            .insert(IconMarker);
                         });
                     });
                 }

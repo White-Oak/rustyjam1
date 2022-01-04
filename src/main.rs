@@ -14,10 +14,10 @@ mod smoke_bomb;
 mod stats_screen;
 mod treasure;
 mod ui;
+mod skills;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
-// use bevy_inspector_egui::{InspectorPlugin, WorldInspectorPlugin, widgets::InspectorQuery};
 use button::MyButtonPlugin;
 use camera_enemy::EnemyCameraPlugin;
 use inventory::InventoryScreenPlugin;
@@ -26,6 +26,7 @@ use main_menu_ui::MainMenuUiPlugin;
 use map::MapPlugin;
 use perlin::PerlinPlugin;
 use reward::RewardPlugin;
+use skills::SkillsUiPlugin;
 use smoke_bomb::SmokeBombPlugin;
 use stats_screen::StatsScreenPlugin;
 use treasure::TreasurePlugin;
@@ -56,7 +57,7 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .insert_resource(Msaa { samples: 8 })
         .add_plugins(DefaultPlugins)
-        // .add_plugin(WorldInspectorPlugin::new())
+        .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new().filter::<With<Node>>())
         .add_state(GameState::MainMenu)
         .add_plugin(PlayerPlugin)
         .add_plugin(MovementPlugin)
@@ -75,6 +76,7 @@ fn main() {
         .add_plugin(InventoryScreenPlugin)
         .add_plugin(TreasurePlugin)
         .add_plugin(RewardPlugin)
+        .add_plugin(SkillsUiPlugin)
         .add_startup_system(setup.system())
         .init_resource::<RobotoFont>()
         .run();

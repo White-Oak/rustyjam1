@@ -188,26 +188,6 @@ fn clicked_select(
     }
 }
 
-pub struct RewardPlugin;
-impl Plugin for RewardPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.init_resource::<RewardCommon>()
-            .add_system_set(
-                SystemSet::on_enter(GameState::ChoosingTreasure)
-                    .with_system(generate_rewards.system()),
-            )
-            .add_system_set(
-                SystemSet::on_update(GameState::ChoosingTreasure)
-                    .with_system(clicked_select.system().after("button_click")),
-            )
-            .add_system_set(
-                SystemSet::on_exit(GameState::ChoosingTreasure)
-                    .with_system(cleanup_system::<RewardMarker>.system()),
-            );
-        register_my_button::<ClickedReward>(app, GameState::ChoosingTreasure);
-    }
-}
-
 const BG_SIZE: f32 = 5000.;
 
 fn build_bg_mesh() -> Mesh {
@@ -293,5 +273,25 @@ fn get_card_shader_color(mods_len: usize) -> Vec3 {
         2 => Vec3::new(0.1, 0.1, 1.),
         4 => Vec3::new(0.7, 0.7, 0.1),
         _ => unreachable!(),
+    }
+}
+
+pub struct RewardPlugin;
+impl Plugin for RewardPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        app.init_resource::<RewardCommon>()
+            .add_system_set(
+                SystemSet::on_enter(GameState::ChoosingTreasure)
+                    .with_system(generate_rewards.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::ChoosingTreasure)
+                    .with_system(clicked_select.system().after("button_click")),
+            )
+            .add_system_set(
+                SystemSet::on_exit(GameState::ChoosingTreasure)
+                    .with_system(cleanup_system::<RewardMarker>.system()),
+            );
+        register_my_button::<ClickedReward>(app, GameState::ChoosingTreasure);
     }
 }

@@ -9,10 +9,6 @@ const BASE_HEIGHT: f32 = 227. / 1440. * 100. * 0.75;
 
 struct SkillsUiHandles {
     layout: Handle<ColorMaterial>,
-    dash: Handle<ColorMaterial>,
-    dash_gray: Handle<ColorMaterial>,
-    bomb: Handle<ColorMaterial>,
-    bomb_gray: Handle<ColorMaterial>,
     none_material: Handle<ColorMaterial>,
 }
 
@@ -24,40 +20,19 @@ fn get_handle(world: &mut World, path: &str) -> Handle<ColorMaterial> {
     let mut materials = world
         .get_resource_mut::<Assets<ColorMaterial>>()
         .expect("no materials");
-    let handle = materials.add(ColorMaterial::texture(handle));
-    handle
-}
-
-fn get_handle_gray(world: &mut World, path: &str) -> Handle<ColorMaterial> {
-    let asset_server = world
-        .get_resource::<AssetServer>()
-        .expect("no assets server");
-    let handle = asset_server.load(path);
-    let mut materials = world
-        .get_resource_mut::<Assets<ColorMaterial>>()
-        .expect("no materials");
-    let handle = materials.add(ColorMaterial::modulated_texture(handle, Color::GRAY));
-    handle
+    materials.add(ColorMaterial::texture(handle))
 }
 
 impl FromWorld for SkillsUiHandles {
     fn from_world(world: &mut World) -> Self {
         let layout = get_handle(world, "skills_ui.png");
-        let dash = get_handle(world, "skills_q.png");
-        let dash_gray = get_handle_gray(world, "skills_q.png");
-        let bomb = get_handle(world, "skills_e.png");
-        let bomb_gray = get_handle_gray(world, "skills_e.png");
         let mut color_materials = world
             .get_resource_mut::<Assets<ColorMaterial>>()
             .expect("no materials");
         let none_material = color_materials.add(Color::NONE.into());
         SkillsUiHandles {
             layout,
-            dash,
-            bomb,
             none_material,
-            dash_gray,
-            bomb_gray,
         }
     }
 }
@@ -105,17 +80,21 @@ fn setup(
             style: Style {
                 position_type: PositionType::Absolute,
                 position: Rect {
-                    right: Val::Px(0.),
-                    bottom: Val::Px(0.),
+                    right: Val::Px(2.),
+                    bottom: Val::Px(2.),
                     ..Default::default()
                 },
                 size: Size {
                     width: Val::Percent(BASE_WIDTH),
                     height: Val::Percent(BASE_HEIGHT),
                 },
+                min_size: Size {
+                    width: Val::Percent(BASE_WIDTH),
+                    height: Val::Percent(BASE_HEIGHT),
+                },
                 ..Default::default()
             },
-            material,
+            material: material.clone(),
             ..Default::default()
         })
         .insert(SkillsState::default())
@@ -127,6 +106,10 @@ fn setup(
                         width: Val::Percent(100.),
                         height: Val::Percent(100.),
                     },
+                    size: Size {
+                        width: Val::Percent(100.),
+                        height: Val::Percent(100.),
+                    },
                     ..Default::default()
                 },
                 ..Default::default()
@@ -135,21 +118,46 @@ fn setup(
                 for s in ["Q", "E"] {
                     ec.spawn_bundle(NodeBundle {
                         style: Style {
-                            flex_direction: FlexDirection::Column,
+                            flex_direction: FlexDirection::ColumnReverse,
+                            size: Size {
+                                width: Val::Percent(50.),
+                                height: Val::Percent(100.),
+                            },
+                            align_items: AlignItems::Center,
+                            justify_content: JustifyContent::FlexEnd,
                             ..Default::default()
                         },
+                        material: material.clone(),
                         ..Default::default()
                     })
                     .with_children(|ec| {
+                        let text = Text::with_section(
+                            "10.9",
+                            TextStyle {
+                                font: font_handle.clone(),
+                                font_size: 12.0,
+                                color: Color::WHITE,
+                            },
+                            TextAlignment {
+                                vertical: VerticalAlign::Center,
+                                horizontal: HorizontalAlign::Center,
+                            },
+                        );
+                        ec.spawn_bundle(TextBundle {
+                            text,
+                            ..Default::default()
+                        });
                         ec.spawn_bundle(NodeBundle {
                             style: Style {
                                 size: Size {
                                     height: Val::Percent(80.),
-                                    width: Val::Auto,
+                                    width: Val::Percent(100.),
                                 },
+                                align_items: AlignItems::Center,
                                 justify_content: JustifyContent::Center,
                                 ..Default::default()
                             },
+                            material: material.clone(),
                             ..Default::default()
                         })
                         .with_children(|ec| {
@@ -157,12 +165,12 @@ fn setup(
                                 s.to_string(),
                                 TextStyle {
                                     font: font_handle.clone(),
-                                    font_size: 30.0,
+                                    font_size: 48.0,
                                     color: Color::WHITE,
                                 },
                                 TextAlignment {
-                                    vertical: VerticalAlign::Top,
-                                    horizontal: HorizontalAlign::Left,
+                                    vertical: VerticalAlign::Center,
+                                    horizontal: HorizontalAlign::Center,
                                 },
                             );
                             ec.spawn_bundle(TextBundle {

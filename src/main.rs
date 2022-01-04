@@ -10,11 +10,11 @@ mod movement;
 mod perlin;
 mod player;
 mod reward;
+mod skills;
 mod smoke_bomb;
 mod stats_screen;
 mod treasure;
 mod ui;
-mod skills;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
@@ -57,7 +57,7 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .insert_resource(Msaa { samples: 8 })
         .add_plugins(DefaultPlugins)
-        .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new().filter::<With<Node>>())
+        // .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new().filter::<With<Node>>())
         .add_state(GameState::MainMenu)
         .add_plugin(PlayerPlugin)
         .add_plugin(MovementPlugin)

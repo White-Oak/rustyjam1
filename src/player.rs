@@ -4,6 +4,7 @@ use crate::{
     cleanup::cleanup_system,
     map::SpawnPoint,
     movement::Velocity,
+    skills::SkillsState,
     smoke_bomb::{SmokeBomb, SMOKE_BOMB_RADIUS},
     GameState,
 };
@@ -19,6 +20,10 @@ const EMP_CAST_TIME: f32 = 1.5;
 const DASH_DURATION: f32 = 0.5;
 const SMOKE_DURATION: f32 = 50.0;
 const EMP_DURATION: f32 = 1.5;
+
+const DASH_CD_TIME: f32 = 0.0;
+const SMOKE_CD_TIME: f32 = 5.0;
+const EMP_CD_TIME: f32 = 10.0;
 
 const DASH_VEL_MULTI: f32 = 3.;
 
@@ -56,6 +61,14 @@ impl SpellKind {
             SpellKind::Dash => DASH_CAST_TIME,
             SpellKind::Smoke => SMOKE_CAST_TIME,
             SpellKind::Emp => EMP_CAST_TIME,
+        }
+    }
+
+    fn cd_time(&self) -> f32 {
+        match self {
+            SpellKind::Dash => DASH_CD_TIME,
+            SpellKind::Smoke => SMOKE_CD_TIME,
+            SpellKind::Emp => EMP_CD_TIME,
         }
     }
 
@@ -226,6 +239,7 @@ fn process_casting(
     mut cast_res: ResMut<Option<Casting>>,
     player: Query<(Entity, &Transform), With<Player>>,
     time: Res<Time>,
+    mut skills_state: ResMut<SkillsState>,
 ) {
     if let Some(casting) = cast_res.as_mut() {
         casting.timer.tick(time.delta());
@@ -238,6 +252,12 @@ fn process_casting(
                 }
 
                 CastingCommand::Cast(cast_kind) => {
+                    let state = skills_state.get_state(*cast_kind);
+                    if state.time_to_cd.is_some() {
+                        // cd is still on
+                        return;
+                    }
+
                     // TODO: remove animation
                     casting.kind = *cast_kind;
                     // TODO: scale with stats
@@ -285,6 +305,14 @@ fn process_casting(
                     log::debug!("casted smoke bomb");
                 }
                 SpellKind::Emp => {}
+            }
+            // start cd
+            let duration = casting.kind.cd_time();
+            if duration > 0. {
+                let state = skills_state.get_state_mut(casting.kind);
+                log::debug!(duration = duration, "putting skill on cd");
+                let timer = Timer::from_seconds(duration, false);
+                state.time_to_cd = Some(timer);
             }
             let _ = cast_res.take();
         }

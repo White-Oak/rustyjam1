@@ -1,11 +1,14 @@
 use std::time::Duration;
 
-use bevy::{asset::Asset, prelude::*};
+use bevy::prelude::*;
 
 use crate::{cleanup::cleanup_system, player::SpellKind, GameState};
 
 const BASE_WIDTH: f32 = 352. / 2560. * 100. * 0.75;
 const BASE_HEIGHT: f32 = 227. / 1440. * 100. * 0.75;
+
+// TODO: less updates for skill ui
+// const UPDATE_SKILLS_SECS: f32 = 0.05;
 
 struct SkillsUiHandles {
     layout: Handle<ColorMaterial>,
@@ -38,14 +41,50 @@ impl FromWorld for SkillsUiHandles {
 }
 
 #[derive(Debug, Default)]
-struct SkillsState {
+pub struct SkillsState {
     q: SkillState,
     e: SkillState,
+    r: SkillState,
+}
+
+impl SkillsState {
+    pub fn get_state(&self, kind: SpellKind) -> &SkillState {
+        match kind {
+            SpellKind::Dash => &self.q,
+            SpellKind::Smoke => &self.e,
+            SpellKind::Emp => &self.r,
+        }
+    }
+
+    pub fn get_state_mut(&mut self, kind: SpellKind) -> &mut SkillState {
+        match kind {
+            SpellKind::Dash => &mut self.q,
+            SpellKind::Smoke => &mut self.e,
+            SpellKind::Emp => &mut self.r,
+        }
+    }
+
+    fn tick_states(&mut self, delta: Duration) {
+        for state in [&mut self.q, &mut self.e, &mut self.r] {
+            if let Some(time_to_cd) = &mut state.time_to_cd {
+                time_to_cd.tick(delta);
+                if time_to_cd.finished() {
+                    state.time_to_cd = None;
+                }
+            }
+        }
+    }
+
+    fn needs_to_tick(&self) -> bool {
+        [&self.q, &self.e, &self.r]
+            .iter()
+            .any(|s| s.time_to_cd.is_some())
+    }
 }
 
 #[derive(Debug, Default)]
-struct SkillState {
-    time_to_cd: Option<Duration>,
+pub struct SkillState {
+    pub time_to_cd: Option<Timer>,
 }
 
 struct SkillsUiMarker;
@@ -104,7 +143,7 @@ fn setup(
             material: material.clone(),
             ..Default::default()
         })
-        .insert(SkillsState::default())
+        .insert(SkillsUiMarker)
         .with_children(|ec| {
             ec.spawn_bundle(ImageBundle {
                 material: textures.layout.clone(),
@@ -158,6 +197,7 @@ fn setup(
                             text,
                             ..Default::default()
                         })
+                        .insert(s)
                         .insert(CooldownMarker);
                         ec.spawn_bundle(NodeBundle {
                             style: Style {
@@ -189,6 +229,7 @@ fn setup(
                                 text,
                                 ..Default::default()
                             })
+                            .insert(s)
                             .insert(IconMarker);
                         });
                     });
@@ -197,14 +238,57 @@ fn setup(
         });
 }
 
+fn tick_states(time: Res<Time>, mut skills_state: ResMut<SkillsState>) {
+    if skills_state.needs_to_tick() {
+        skills_state.tick_states(time.delta());
+    }
+}
+
+#[allow(clippy::type_complexity)]
+fn update_texts(
+    skills_state: Res<SkillsState>,
+    cooldowns: Query<
+        (&mut Text, &mut Visible, &SpellKind),
+        (With<CooldownMarker>, Without<IconMarker>),
+    >,
+    icons: Query<(&mut Text, &SpellKind), (With<IconMarker>, Without<CooldownMarker>)>,
+) {
+    if skills_state.is_changed() {
+        cooldowns.for_each_mut(|(mut text, mut visible, kind)| {
+            let state = skills_state.get_state(*kind);
+            if let Some(time_to_cd) = &state.time_to_cd {
+                let left = (time_to_cd.duration() - time_to_cd.elapsed()).as_secs_f32();
+                text.sections[0].value = format!("{left:.1}");
+                visible.is_visible = true;
+            } else {
+                visible.is_visible = false;
+            }
+        });
+        icons.for_each_mut(|(mut text, kind)| {
+            let state = skills_state.get_state(*kind);
+            if state.time_to_cd.is_some() {
+                text.sections[0].style.color = Color::GRAY;
+            } else {
+                text.sections[0].style.color = Color::WHITE;
+            }
+        });
+    }
+}
+
 pub struct SkillsUiPlugin;
 impl Plugin for SkillsUiPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<SkillsUiHandles>()
+            .init_resource::<SkillsState>()
             .add_system_set(SystemSet::on_enter(GameState::Level).with_system(setup.system()))
             .add_system_set(
+                SystemSet::on_update(GameState::Level)
+                    .with_system(tick_states.system().label("skills_ui_tick"))
+                    .with_system(update_texts.system().after("skills_ui_tick")),
+            )
+            .add_system_set(
                 SystemSet::on_exit(GameState::Level)
-                    .with_system(cleanup_system::<SkillsState>.system()),
+                    .with_system(cleanup_system::<SkillsUiMarker>.system()),
             );
     }
 }

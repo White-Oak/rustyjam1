@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::prelude::*;
+use bevy::{prelude::*};
 
 use crate::{cleanup::cleanup_system, player::SpellKind, GameState};
 
@@ -126,8 +126,8 @@ fn setup(
             style: Style {
                 position_type: PositionType::Absolute,
                 position: Rect {
-                    right: Val::Px(2.),
-                    bottom: Val::Px(2.),
+                    right: Val::Px(30.),
+                    bottom: Val::Px(30.),
                     ..Default::default()
                 },
                 size: Size {
@@ -181,7 +181,7 @@ fn setup(
                             "10.9",
                             TextStyle {
                                 font: font_handle.clone(),
-                                font_size: 12.0,
+                                font_size: 20.0,
                                 color: Color::WHITE,
                             },
                             TextAlignment {

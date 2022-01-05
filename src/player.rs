@@ -41,9 +41,9 @@ pub enum SpellKind {
     Emp,
 }
 
-struct Casting {
-    kind: SpellKind,
-    timer: Timer,
+pub struct Casting {
+    pub kind: SpellKind,
+    pub timer: Timer,
 }
 
 // struct Channeling {
@@ -241,33 +241,37 @@ fn process_casting(
     time: Res<Time>,
     mut skills_state: ResMut<SkillsState>,
 ) {
-    if let Some(casting) = cast_res.as_mut() {
-        casting.timer.tick(time.delta());
+    if cast_res.is_some() {
+        if let Some(casting) = cast_res.as_mut() {
+            casting.timer.tick(time.delta());
+        }
     }
     if let Some(event) = casting_events.iter().next() {
-        if let Some(casting) = cast_res.as_mut() {
-            match event {
-                CastingCommand::Cast(cast_kind) if *cast_kind == casting.kind => {
-                    // don't interrupt or anything
-                }
-
-                CastingCommand::Cast(cast_kind) => {
-                    let state = skills_state.get_state(*cast_kind);
-                    if state.time_to_cd.is_some() {
-                        // cd is still on
-                        return;
+        if cast_res.is_some() {
+            if let Some(casting) = cast_res.as_mut() {
+                match event {
+                    CastingCommand::Cast(cast_kind) if *cast_kind == casting.kind => {
+                        // don't interrupt or anything
                     }
 
-                    // TODO: remove animation
-                    casting.kind = *cast_kind;
-                    // TODO: scale with stats
-                    casting.timer = Timer::from_seconds(cast_kind.cast_time(), false);
-                    // TODO: spawn animation
-                }
-                CastingCommand::Interrupt => {
-                    // TODO: remove animation
-                    // but Dash will take care of itself
-                    cast_res.take();
+                    CastingCommand::Cast(cast_kind) => {
+                        let state = skills_state.get_state(*cast_kind);
+                        if state.time_to_cd.is_some() {
+                            // cd is still on
+                            return;
+                        }
+
+                        // TODO: remove animation
+                        casting.kind = *cast_kind;
+                        // TODO: scale with stats
+                        casting.timer = Timer::from_seconds(cast_kind.cast_time(), false);
+                        // TODO: spawn animation
+                    }
+                    CastingCommand::Interrupt => {
+                        // TODO: remove animation
+                        // but Dash will take care of itself
+                        cast_res.take();
+                    }
                 }
             }
         } else if let CastingCommand::Cast(cast_kind) = event {
@@ -280,7 +284,7 @@ fn process_casting(
         }
     }
 
-    if let Some(casting) = cast_res.as_mut() {
+    if let Some(casting) = cast_res.as_ref() {
         if casting.timer.just_finished() {
             log::debug!("finished casting");
             let (player, tr) = player.single().expect("single player");

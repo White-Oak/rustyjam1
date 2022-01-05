@@ -15,11 +15,13 @@ mod smoke_bomb;
 mod stats_screen;
 mod treasure;
 mod ui;
+mod castbar;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 use button::MyButtonPlugin;
 use camera_enemy::EnemyCameraPlugin;
+use castbar::CastbarPlugin;
 use inventory::InventoryScreenPlugin;
 use light_radius::LightRadiusPlugin;
 use main_menu_ui::MainMenuUiPlugin;
@@ -57,7 +59,7 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .insert_resource(Msaa { samples: 8 })
         .add_plugins(DefaultPlugins)
-        // .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new().filter::<With<Node>>())
+        .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new().filter::<With<Handle<Mesh>>>())
         .add_state(GameState::MainMenu)
         .add_plugin(PlayerPlugin)
         .add_plugin(MovementPlugin)
@@ -77,6 +79,7 @@ fn main() {
         .add_plugin(TreasurePlugin)
         .add_plugin(RewardPlugin)
         .add_plugin(SkillsUiPlugin)
+        .add_plugin(CastbarPlugin)
         .add_startup_system(setup.system())
         .init_resource::<RobotoFont>()
         .run();

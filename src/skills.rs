@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::{prelude::*};
+use bevy::prelude::*;
 
 use crate::{cleanup::cleanup_system, player::SpellKind, GameState};
 

@@ -1,12 +1,10 @@
-use std::f32::consts::PI;
-
 use bevy::{
     log,
     prelude::*,
     reflect::TypeUuid,
     render::{
         pipeline::{BlendFactor, BlendOperation, BlendState, PipelineDescriptor, RenderPipeline},
-        render_graph::{base::node::MAIN_PASS, RenderGraph, RenderResourcesNode},
+        render_graph::{RenderGraph, RenderResourcesNode},
         renderer::RenderResources,
         shader::{ShaderStage, ShaderStages},
     },
@@ -42,11 +40,9 @@ impl CastbarBundle {
         let v_pos = vec![[x, y, 0.], [x2, y, 0.], [x2, y2, 0.], [x, y2, 0.]];
         mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, v_pos);
 
-        let v_color = vec![[0.0, 0.0, 0.0], [1., 0., 0.], [1., 0., 0.], [0., 0., 0.]];
-        mesh.set_attribute("Vertex_Color", v_color);
         let indices = vec![0, 2, 1, 0, 3, 2];
         mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices)));
-        let uv = vec![1., 1., 1., 1.];
+        let uv = vec![1., 0., 0., 1.];
         mesh.set_attribute(Mesh::ATTRIBUTE_UV_0, uv);
         let mesh_bundle = MeshBundle {
             mesh: meshes.add(mesh),
@@ -96,7 +92,7 @@ fn update_castbar(
             if let Some(casting) = casting.as_ref() {
                 visible.is_visible = true;
                 percent.value = 1. - casting.timer.percent_left();
-        log::debug!(percent = percent.value,"updating castbar");
+                log::debug!(percent = percent.value, "updating castbar");
             } else {
                 visible.is_visible = false;
             }

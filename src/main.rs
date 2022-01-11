@@ -1,5 +1,6 @@
 mod button;
 mod camera_enemy;
+mod castbar;
 mod cleanup;
 mod inventory;
 mod items;
@@ -15,7 +16,6 @@ mod smoke_bomb;
 mod stats_screen;
 mod treasure;
 mod ui;
-mod castbar;
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy_ecs_tilemap::prelude::*;

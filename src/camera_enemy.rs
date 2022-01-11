@@ -112,6 +112,7 @@ fn detect_player(
     cameras: Query<(&Camera, &Transform, &mut NoiseColorComponent)>,
     smoke_bombs: Query<(&SmokeBomb, &Transform)>,
     player: Query<&Transform, (With<Player>, Without<Dashing>)>,
+    mut state: ResMut<State<GameState>>,
 ) {
     let player_tr = if let Ok(x) = player.single() {
         x.translation.xy()
@@ -128,15 +129,22 @@ fn detect_player(
     });
     let base_color = base_color();
     let detected_color = detected_color();
+    let mut is_detected = false;
     cameras.for_each_mut(|(cam, tr, mut color)| {
         let tr = tr.translation.xy();
         let player_tr = player_tr - tr;
         if !is_smoked && is_in_triangle(player_tr, cam.points) {
             color.value = detected_color;
+            is_detected = true;
         } else {
             color.value = base_color;
         }
-    })
+    });
+    if is_detected {
+        state
+            .push(GameState::GameOver)
+            .expect("cant move to gameover");
+    }
 }
 
 pub struct EnemyCameraPlugin;

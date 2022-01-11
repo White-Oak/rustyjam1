@@ -63,7 +63,6 @@ fn spawn_treasure(
 fn treasure_collide(
     player: Query<&Transform, With<Player>>,
     treasures: Query<&Transform, With<TreasureSpawn>>,
-
     mut state: ResMut<State<GameState>>,
 ) {
     let tr = player.single().expect("single player").translation;

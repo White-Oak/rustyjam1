@@ -2,6 +2,7 @@ mod button;
 mod camera_enemy;
 mod castbar;
 mod cleanup;
+mod game_over;
 mod inventory;
 mod items;
 mod light_radius;
@@ -22,6 +23,7 @@ use bevy_ecs_tilemap::prelude::*;
 use button::MyButtonPlugin;
 use camera_enemy::EnemyCameraPlugin;
 use castbar::CastbarPlugin;
+use game_over::GameoverPlugin;
 use inventory::InventoryScreenPlugin;
 use light_radius::LightRadiusPlugin;
 use main_menu_ui::MainMenuUiPlugin;
@@ -44,6 +46,7 @@ pub enum GameState {
     LoadingLevel,
     Level,
     ChoosingTreasure,
+    GameOver,
 }
 
 pub const WIDTH: f32 = 1920. * 0.9;
@@ -59,7 +62,7 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .insert_resource(Msaa { samples: 8 })
         .add_plugins(DefaultPlugins)
-        .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new().filter::<With<Handle<Mesh>>>())
+        // .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new().filter::<With<Handle<Mesh>>>())
         .add_state(GameState::MainMenu)
         .add_plugin(PlayerPlugin)
         .add_plugin(MovementPlugin)
@@ -80,6 +83,7 @@ fn main() {
         .add_plugin(RewardPlugin)
         .add_plugin(SkillsUiPlugin)
         .add_plugin(CastbarPlugin)
+        .add_plugin(GameoverPlugin)
         .add_startup_system(setup.system())
         .init_resource::<RobotoFont>()
         .run();

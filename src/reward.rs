@@ -236,7 +236,7 @@ fn build_card_mesh() -> Mesh {
         let start = Vec2::new(start[0], start[1]);
         v_pos.push([start.x, start.y]);
         uv.push(CARD_UV_EXTERIOR);
-        if let Some(_) = last_end {
+        if last_end.is_some() {
             indices.extend([0, count, count + 1]);
         }
         count += 1;

@@ -1,5 +1,4 @@
 use bevy::{
-    asset::LoadState,
     log,
     prelude::*,
     render::texture::FilterMode,
@@ -51,7 +50,7 @@ fn load(
 fn spawn_map(mut commands: Commands, current_level: Res<CurrentLevelHandle>) {
     let map_entity = commands.spawn().id();
 
-    let mut transform = Transform::from_xyz(0.0, 0.0, 0.0);
+    let transform = Transform::from_xyz(0.0, 0.0, 0.0);
     // transform.scale = (Vec2::splat(0.99), 1.).into();
     commands
         .entity(map_entity)
@@ -156,43 +155,43 @@ fn load_boundaries(
     state.set(GameState::Level).expect("cant set state");
 }
 
-fn debug_boundaries(
-    mut commands: Commands,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    boundaries: Res<Boundaries>,
-) {
-    let red = materials.add(ColorMaterial {
-        color: Color::rgba(1., 0., 0., 0.5),
-        texture: None,
-    });
-    for (pos, size) in boundaries.0.iter() {
-        let sprite = Sprite::new(*size);
-        commands.spawn_bundle(SpriteBundle {
-            sprite,
-            material: red.clone(),
-            transform: Transform::from_translation(*pos),
-            ..Default::default()
-        });
-    }
-}
+// fn debug_boundaries(
+//     mut commands: Commands,
+//     mut materials: ResMut<Assets<ColorMaterial>>,
+//     boundaries: Res<Boundaries>,
+// ) {
+//     let red = materials.add(ColorMaterial {
+//         color: Color::rgba(1., 0., 0., 0.5),
+//         texture: None,
+//     });
+//     for (pos, size) in boundaries.0.iter() {
+//         let sprite = Sprite::new(*size);
+//         commands.spawn_bundle(SpriteBundle {
+//             sprite,
+//             material: red.clone(),
+//             transform: Transform::from_translation(*pos),
+//             ..Default::default()
+//         });
+//     }
+// }
 
 fn load_stats(mut commands: Commands, items: Res<PlayerItems>) {
     commands.insert_resource(items.stats());
 }
 
-pub fn set_texture_filters_to_nearest(
-    mut texture_events: EventReader<AssetEvent<Texture>>,
-    mut textures: ResMut<Assets<Texture>>,
-) {
-    // quick and dirty, run this for all textures anytime a texture is created.
-    for event in texture_events.iter() {
-        if let AssetEvent::Created { handle } = event {
-            if let Some(mut texture) = textures.get_mut(handle) {
-                texture.sampler.min_filter = FilterMode::Nearest;
-            }
-        }
-    }
-}
+// pub fn set_texture_filters_to_nearest(
+//     mut texture_events: EventReader<AssetEvent<Texture>>,
+//     mut textures: ResMut<Assets<Texture>>,
+// ) {
+//     // quick and dirty, run this for all textures anytime a texture is created.
+//     for event in texture_events.iter() {
+//         if let AssetEvent::Created { handle } = event {
+//             if let Some(mut texture) = textures.get_mut(handle) {
+//                 texture.sampler.min_filter = FilterMode::Nearest;
+//             }
+//         }
+//     }
+// }
 
 pub struct MapPlugin;
 

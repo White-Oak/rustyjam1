@@ -92,8 +92,8 @@ fn update_castbar(
             if let Some(casting) = casting.as_ref() {
                 visible.is_visible = true;
                 percent.value = 1. - casting.timer.percent_left();
-                log::debug!(percent = percent.value, "updating castbar");
             } else {
+                log::debug!(percent = percent.value, "hiding castbar");
                 visible.is_visible = false;
             }
         });
